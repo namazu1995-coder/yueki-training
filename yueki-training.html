@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none';">
+<title>輸液トレーニング</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+  :root{
+    --bg:#F4F7F7;
+    --surface:#FFFFFF;
+    --surface-2:#EAF0F0;
+    --ink:#132326;
+    --ink-soft:#51666C;
+    --ink-faint:#8298A0;
+    --line:#DAE4E4;
+    --primary:#0B6E6E;
+    --primary-strong:#084F4F;
+    --primary-tint:#E2F1F0;
+    --accent:#C1782E;
+    --accent-tint:#FBEDDC;
+    --good:#2E7D4F;
+    --good-tint:#E4F3EA;
+    --warn:#C1782E;
+    --warn-tint:#FBEDDC;
+    --bad:#B23A3A;
+    --bad-tint:#FBE7E5;
+    --shadow: 0 1px 2px rgba(19,35,38,.06), 0 6px 20px rgba(19,35,38,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1A1C;
+      --surface:#152426;
+      --surface-2:#1B2C2E;
+      --ink:#EAF2F1;
+      --ink-soft:#A9BDBF;
+      --ink-faint:#71898C;
+      --line:#264042;
+      --primary:#4FBCB6;
+      --primary-strong:#7ED4CE;
+      --primary-tint:#193532;
+      --accent:#E3A45D;
+      --accent-tint:#332615;
+      --good:#6FC796;
+      --good-tint:#16301F;
+      --warn:#E3A45D;
+      --warn-tint:#332615;
+      --bad:#E27C7C;
+      --bad-tint:#3A1B1B;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1A1C;
+    --surface:#152426;
+    --surface-2:#1B2C2E;
+    --ink:#EAF2F1;
+    --ink-soft:#A9BDBF;
+    --ink-faint:#71898C;
+    --line:#264042;
+    --primary:#4FBCB6;
+    --primary-strong:#7ED4CE;
+    --primary-tint:#193532;
+    --accent:#E3A45D;
+    --accent-tint:#332615;
+    --good:#6FC796;
+    --good-tint:#16301F;
+    --warn:#E3A45D;
+    --warn-tint:#332615;
+    --bad:#E27C7C;
+    --bad-tint:#3A1B1B;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.65;
+  }
+  h1,h2,h3,.disp{
+    font-family:"Zen Kaku Gothic New","BIZ UDPGothic",system-ui,sans-serif;
+    text-wrap:balance;
+    margin:0;
+  }
+  #app{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    background:var(--bg);
+    border-bottom:1px solid var(--line);
+    padding:14px 18px 12px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .topbar .back{
+    appearance:none; border:none; background:transparent; color:var(--primary);
+    font-size:15px; font-weight:700; cursor:pointer; padding:6px 8px 6px 0;
+    display:flex; align-items:center; gap:2px; min-height:44px;
+    font-family:inherit;
+  }
+  .topbar .title{
+    font-size:15px; font-weight:700; color:var(--ink-soft);
+    letter-spacing:.02em;
+    flex:1;
+    text-align:center;
+    margin-right:34px;
+  }
+  main{flex:1; padding:0 18px 48px;}
+
+  /* ---------- HOME ---------- */
+  .hero{ padding:28px 4px 18px; }
+  .hero .eyebrow{
+    font-size:12px; font-weight:700; letter-spacing:.14em; color:var(--primary);
+    text-transform:uppercase;
+  }
+  .hero h1{ font-size:26px; font-weight:900; color:var(--ink); margin-top:8px; line-height:1.4; }
+  .hero p{ color:var(--ink-soft); font-size:14px; margin-top:10px; max-width:44ch; }
+
+  .progress-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:16px 18px; margin:14px 0 8px; box-shadow:var(--shadow);
+    display:flex; align-items:center; gap:16px;
+  }
+  .progress-text{flex:1;}
+  .progress-text .num{font-size:13px; font-weight:700; color:var(--ink);}
+  .progress-text .sub{font-size:12.5px; color:var(--ink-faint); margin-top:2px;}
+  .review-pill-btn{
+    appearance:none; border:1px solid var(--warn); background:var(--warn-tint); color:var(--warn);
+    font-weight:700; font-size:12.5px; padding:8px 12px; border-radius:999px; cursor:pointer;
+    white-space:nowrap; font-family:inherit;
+  }
+
+  .principles-cta{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--primary-tint); border:1px solid var(--primary); border-radius:16px;
+    padding:14px 18px; margin:10px 0 24px; cursor:pointer;
+    width:100%; text-align:left; font-family:inherit; appearance:none;
+  }
+  .principles-cta .t{display:block; font-size:14px; font-weight:700; color:var(--primary-strong);}
+  .principles-cta .s{display:block; font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .principles-cta .arrow{color:var(--primary-strong); font-size:18px; flex:none;}
+
+  .section-head{ display:flex; align-items:baseline; gap:8px; margin:26px 0 12px; }
+  .section-head h2{font-size:15px; font-weight:700; color:var(--ink);}
+  .section-head .count{font-size:12px; color:var(--ink-faint); font-weight:400;}
+
+  .case-grid{ display:flex; flex-direction:column; gap:10px; }
+  .case-card{
+    display:flex; align-items:center; gap:14px;
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:14px 14px; cursor:pointer; text-align:left; width:100%;
+    box-shadow:var(--shadow); font-family:inherit;
+    appearance:none;
+  }
+  .case-card:active{ transform:scale(.99); }
+  .case-num{
+    font-family:"Zen Kaku Gothic New",sans-serif; font-weight:900; font-size:13px;
+    color:var(--ink-faint); width:26px; flex:none; font-variant-numeric:tabular-nums;
+  }
+  .case-body{flex:1; min-width:0; display:flex; flex-direction:column; gap:3px;}
+  .case-body .tag{ font-size:11px; font-weight:700; color:var(--primary); }
+  .case-body .hint{
+    font-size:14px; font-weight:600; color:var(--ink); line-height:1.4;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .status-chip{
+    flex:none; align-self:flex-start; font-size:11.5px; font-weight:700; padding:5px 10px; border-radius:999px;
+    white-space:nowrap;
+  }
+  .status-chip.none{ background:var(--surface-2); color:var(--ink-faint); }
+  .status-chip.good{ background:var(--good-tint); color:var(--good); }
+  .status-chip.partial{ background:var(--warn-tint); color:var(--warn); }
+  .status-chip.poor{ background:var(--bad-tint); color:var(--bad); }
+
+  .empty-review{ text-align:center; padding:40px 20px; color:var(--ink-faint); font-size:14px; }
+
+  /* ---------- CASE VIEW ---------- */
+  .case-hero{ padding:22px 0 4px; }
+  .case-hero .tag{ font-size:12px; font-weight:700; color:var(--primary); letter-spacing:.08em; text-transform:uppercase;}
+  .case-hero h1{ font-size:21px; font-weight:900; margin-top:8px; }
+  .vignette{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:18px 20px; margin-top:16px; box-shadow:var(--shadow); font-size:14.5px; color:var(--ink);
+  }
+  .vitals-line{
+    margin-top:12px; padding-top:12px; border-top:1px dashed var(--line);
+    font-size:13px; color:var(--ink-soft); font-variant-numeric:tabular-nums;
+  }
+  .vitals-line b{color:var(--ink); font-weight:700;}
+
+  .prompt-block{ margin-top:22px; }
+  .prompt-block label{
+    display:block; font-size:13.5px; font-weight:700; color:var(--ink); margin-bottom:8px; line-height:1.5;
+  }
+  .prompt-block label .n{ color:var(--primary); margin-right:6px; }
+  .prompt-block textarea{
+    width:100%; min-height:88px; resize:vertical; border-radius:12px;
+    border:1px solid var(--line); background:var(--surface); color:var(--ink);
+    padding:12px 14px; font-family:inherit; font-size:14px; line-height:1.6;
+  }
+  .prompt-block textarea:focus{ outline:2px solid var(--primary); outline-offset:1px; }
+  .prompt-block textarea::placeholder{ color:var(--ink-faint); }
+
+  .reveal-btn{
+    width:100%; margin-top:24px; appearance:none; border:none; cursor:pointer;
+    background:var(--primary); color:#fff; font-weight:700; font-size:15px;
+    padding:15px; border-radius:14px; font-family:inherit;
+    box-shadow:0 4px 14px rgba(11,110,110,.28);
+  }
+  .reveal-btn:active{ transform:scale(.99); }
+
+  .answer-wrap{ margin-top:28px; }
+  .answer-wrap .divider{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .answer-wrap .divider .line{ flex:1; height:1px; background:var(--line); }
+  .answer-wrap .divider span{ font-size:12px; font-weight:700; color:var(--ink-faint); letter-spacing:.08em;}
+
+  .answer-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:18px 20px; margin-bottom:12px; box-shadow:var(--shadow);
+  }
+  .answer-card h3{
+    font-size:13.5px; font-weight:700; display:flex; align-items:center; gap:8px; margin-bottom:10px;
+  }
+  .answer-card h3 .ico{
+    width:22px;height:22px;border-radius:7px;flex:none; display:flex;align-items:center;justify-content:center;
+    font-size:12px; font-weight:900; color:#fff;
+  }
+  .ico.check{background:var(--primary);}
+  .ico.sum{background:var(--accent);}
+  .answer-card ul{ margin:0; padding-left:20px; font-size:14px; color:var(--ink); }
+  .answer-card li{ margin-bottom:6px; }
+  .answer-card li:last-child{ margin-bottom:0; }
+  mark{
+    background:var(--accent-tint); color:var(--accent); padding:1px 5px; border-radius:5px;
+    font-weight:700; box-decoration-break:clone; -webkit-box-decoration-break:clone;
+  }
+  .mistake-box{
+    margin-top:12px; padding:10px 14px; border-radius:10px;
+    background:var(--bad-tint); color:var(--bad); font-size:12.5px; line-height:1.6;
+  }
+  .mistake-box b{ display:block; font-size:11.5px; font-weight:700; margin-bottom:4px; letter-spacing:.04em; }
+  .mistake-box ul{ margin:0; padding-left:18px; color:var(--bad); }
+  .refs-box{
+    margin-top:14px; padding-top:12px; border-top:1px dashed var(--line);
+    font-size:12.5px; color:var(--ink-soft);
+  }
+  .refs-box b{ display:block; font-size:11.5px; font-weight:700; color:var(--ink-faint); margin-bottom:4px; letter-spacing:.04em; }
+  .refs-box ul{ margin:0; padding-left:18px; color:var(--ink-soft); }
+
+  .assess-block{ margin-top:26px; }
+  .assess-block .q{ font-size:14px; font-weight:700; margin-bottom:12px; text-align:center; }
+  .assess-row{ display:flex; gap:8px; }
+  .assess-btn{
+    flex:1; appearance:none; cursor:pointer; border-radius:12px; padding:13px 6px;
+    font-family:inherit; font-size:12.5px; font-weight:700; line-height:1.4;
+    border:1.5px solid var(--line); background:var(--surface); color:var(--ink-soft);
+  }
+  .assess-btn.good{ border-color:var(--good); }
+  .assess-btn.partial{ border-color:var(--warn); }
+  .assess-btn.poor{ border-color:var(--bad); }
+  .assess-btn.good.active{ background:var(--good); color:#fff; }
+  .assess-btn.partial.active{ background:var(--warn); color:#fff; }
+  .assess-btn.poor.active{ background:var(--bad); color:#fff; }
+  .save-warning{
+    margin-top:12px; padding:10px 14px; border-radius:10px;
+    background:var(--bad-tint); color:var(--bad); font-size:12.5px; font-weight:600; line-height:1.5;
+  }
+
+  .after-assess{
+    margin-top:22px; display:flex; flex-direction:column; gap:10px;
+    animation:fadein .3s ease;
+  }
+  @keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+  .nav-btn{
+    appearance:none; border:none; cursor:pointer; border-radius:12px; padding:14px;
+    font-family:inherit; font-size:14.5px; font-weight:700; text-align:center;
+  }
+  .nav-btn.primary{ background:var(--primary); color:#fff; }
+  .nav-btn.ghost{ background:var(--surface-2); color:var(--ink-soft); border:1px solid var(--line); }
+
+  /* ---------- PRINCIPLES VIEW ---------- */
+  .principles-hero{ padding:24px 0 6px; }
+  .principles-hero .eyebrow{ font-size:12px; font-weight:700; color:var(--primary); letter-spacing:.1em; text-transform:uppercase;}
+  .principles-hero h1{ font-size:22px; font-weight:900; margin-top:8px; }
+  .principles-hero p{ font-size:13.5px; color:var(--ink-soft); margin-top:8px; }
+
+  .escalation-note{
+    margin-top:18px; padding:16px 18px; border-radius:14px;
+    background:var(--accent-tint); border:1.5px solid var(--accent);
+  }
+  .escalation-note .en-label{
+    font-size:12px; font-weight:700; letter-spacing:.06em; color:var(--accent); text-transform:uppercase;
+  }
+  .escalation-note .en-body{ font-size:13.5px; color:var(--ink); margin-top:6px; line-height:1.6; }
+
+  .flow{ margin-top:22px; position:relative; }
+  .flow-step{ display:flex; gap:14px; position:relative; padding-bottom:22px; }
+  .flow-step:last-child{ padding-bottom:0; }
+  .flow-step .rail{ display:flex; flex-direction:column; align-items:center; flex:none; }
+  .flow-step .node{
+    width:32px; height:32px; border-radius:50%; background:var(--primary); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:900; font-size:13px;
+    font-family:"Zen Kaku Gothic New",sans-serif; flex:none; z-index:1;
+  }
+  .flow-step .stem{ width:2px; flex:1; background:var(--line); margin-top:2px; }
+  .flow-step .content{ flex:1; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow); margin-top:1px;}
+  .flow-step .content h3{ font-size:14.5px; font-weight:700; }
+  .flow-step .content p{ font-size:13px; color:var(--ink-soft); margin-top:5px; }
+
+  .principles-foot{
+    margin-top:26px; padding:16px 18px; background:var(--primary-tint); border-radius:14px;
+    font-size:13px; color:var(--primary-strong); text-align:center; font-weight:700;
+  }
+
+  a{color:var(--primary);}
+  button:focus-visible, textarea:focus-visible, .case-card:focus-visible{
+    outline:2px solid var(--primary); outline-offset:2px;
+  }
+
+  @media (hover:hover){
+    .case-card:hover{ border-color:var(--primary); }
+    .principles-cta:hover{ background:var(--primary-tint); filter:brightness(0.97); }
+    .review-pill-btn:hover{ filter:brightness(0.95); }
+    .reveal-btn:hover{ filter:brightness(1.08); }
+    .assess-btn:hover{ border-color:var(--primary); }
+    .nav-btn.primary:hover{ filter:brightness(1.08); }
+    .nav-btn.ghost:hover{ border-color:var(--primary); }
+    .topbar .back:hover{ text-decoration:underline; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CASES = [
+    {
+      id:"postop", num:1, tag:"周術期輸液",
+      hint:"55歳男性・体重62kg・開腹S状結腸切除術後1日目",
+      vignette:"55歳男性。体重62kg。S状結腸癌に対し開腹S状結腸切除術を施行し、術後1日目。一般病棟で経過観察中。",
+      data:"BP 118/70　HR 88　SpO2 98%(room air)　T 37.2℃　術後経過は概ね良好、飲水は開始前",
+      questions:[
+        {
+          q:"この患者(体重62kg)の術後維持輸液量の目安を計算せよ。あわせて、その計算方法をそのまま成人に使ってよいか吟味せよ。",
+          answer:[
+            "成人の維持輸液量は<mark>体重×25〜30mL/kg/day程度</mark>を目安とすることが多い(病態に応じて20〜35mL/kg/dayの幅で調整)",
+            "62kgなら概ね1550〜1860mL/day(時間あたり約65〜80mL/hr)",
+            "小児で用いられる<mark>4-2-1ルール(Holliday-Segar法)は体格の異なる成人にそのまま適用すべきではない</mark>。成人では体重あたりの係数でシンプルに見積もるのが一般的"
+          ],
+          mistakes:["小児用の4-2-1ルールを成人にそのまま流用してしまう","年齢・心腎機能を考慮せず一律の数値を当てはめる"]
+        },
+        {
+          q:"術後早期に選択すべき輸液の種類とその理由を、維持液との違いを踏まえて述べよ。",
+          answer:[
+            "術直後は循環血漿量の維持を優先し、<mark>細胞外液補充液(乳酸/酢酸リンゲル液など)</mark>を基本とする",
+            "維持液(3号液などの低張電解質液)は自由水の比率が高く、術後はストレス反応でADH分泌が亢進し水分排泄能が低下しているため、<mark>早期からの維持液投与は低Na血症のリスク</mark>となる"
+          ],
+          mistakes:["術後早期から維持液(3号液)をルーチンで選択してしまう"]
+        },
+        {
+          q:"術後経過でモニタリングすべき項目を挙げよ。",
+          answer:[
+            "尿量(目安 0.5mL/kg/hr以上)",
+            "体重の推移",
+            "血清Na/K",
+            "創部・ドレーン排液量、浮腫や肺野の聴診所見"
+          ],
+          mistakes:["尿量だけを見て、体重増加や肺うっ血などの溢水所見を見落とす"]
+        },
+        {
+          q:"「絶飲食が続くから維持液を多めに」という考え方の何が問題か。",
+          answer:[
+            "いわゆる<mark>「サードスペース」への喪失を見込んだ大量輸液という考え方は近年見直されており</mark>、過剰輸液はかえって創部浮腫・腸管浮腫によるイレウス遷延、肺水腫、縫合不全リスクの増加につながりうる",
+            "現在は<mark>restrictive〜goal-directedな輸液管理</mark>(必要最小限を所見を見ながら調整)が主流"
+          ],
+          mistakes:["「念のため多めに」という発想で漫然と輸液量を増やしてしまう"]
+        }
+      ],
+      summary:{
+        points:[
+          "成人の維持輸液は体重×25〜30mL/kg/dayが目安。小児用の4-2-1ルールをそのまま使わない",
+          "術後早期は細胞外液補充液が基本、維持液は低Na血症リスクに留意",
+          "過剰輸液は合併症を増やす。restrictive寄りの管理が近年の主流",
+          "尿量・体重・電解質でこまめに再評価する"
+        ],
+        refs:["日本麻酔科学会 周術期管理チームテキスト","ERAS(Enhanced Recovery After Surgery)関連文献"]
+      }
+    },
+    {
+      id:"dka", num:2, tag:"糖尿病・電解質",
+      hint:"22歳女性・1型糖尿病・意識障害で救急搬送",
+      vignette:"22歳女性。1型糖尿病の既往があり、数日前からの感冒様症状の後、嘔気・多尿・全身倦怠感が出現。当日朝からの反応低下で救急要請された。",
+      data:"BP 92/58　HR 118　RR 28(深く早い呼吸)　SpO2 98%(RA)　T 37.0℃／血糖 612mg/dL　静脈血液ガス pH 7.08　HCO3- 8mEq/L　アニオンギャップ開大　血清K 5.6mEq/L　Na 128mEq/L(補正Na 約133mEq/L)　尿ケトン陽性",
+      questions:[
+        {
+          q:"初期輸液として何を、どの程度の速度で開始するか。",
+          answer:[
+            "<mark>生理食塩水(0.9%)</mark>を用いて循環動態を評価しながら急速輸液を開始する(最初の1時間は目安として15〜20mL/kg程度)",
+            "その後は脱水の程度、心機能・腎機能を見ながら投与速度を調整する"
+          ],
+          mistakes:["輸液の速度を明確にオーダーしない","心不全の既往があっても画一的に急速投与してしまう"]
+        },
+        {
+          q:"インスリン投与を開始する前に必ず確認すべき電解質は何か。その理由も述べよ。",
+          answer:[
+            "<mark>血清カリウム値</mark>",
+            "K<3.3mEq/Lの場合、インスリン投与によりカリウムが細胞内へ急速にシフトし<mark>致死的な低カリウム血症</mark>をきたしうるため、インスリン開始前(または同時)にカリウム補充を先行させる",
+            "K 3.3〜5.3mEq/Lならカリウムを輸液に加えながらインスリンを開始、K>5.3mEq/Lなら補充せずインスリンを開始しつつ頻回に再検する"
+          ],
+          mistakes:["カリウム値を確認せずにインスリンを開始してしまう"]
+        },
+        {
+          q:"血糖・アシドーシス補正の速度で注意すべき点は何か。治療終了の指標は何か。",
+          answer:[
+            "インスリンは<mark>少量持続静注(目安 0.1単位/kg/hr)</mark>で開始し、血糖の急激な低下(時間あたり50〜70mg/dL程度を超えるような急降下)は避ける",
+            "治療終了の指標は血糖値の正常化ではなく、<mark>アニオンギャップの正常化とアシドーシスの改善(pH・HCO3-の回復)</mark>である"
+          ],
+          mistakes:["血糖値だけを指標にインスリンを中止・減量してしまう","血糖を下げすぎる"]
+        },
+        {
+          q:"輸液内容を切り替えるタイミングと、重炭酸投与の適応をどう考えるか。",
+          answer:[
+            "血糖が<mark>200〜250mg/dL程度まで低下した時点でブドウ糖含有液に切り替え</mark>、インスリン持続投与自体はアシドーシス・ケトーシスが改善するまで継続する",
+            "重炭酸投与は<mark>原則不要</mark>で、pH<6.9程度の重度アシドーシスなど限定的な状況でのみ考慮される(エビデンスは強くない)"
+          ],
+          mistakes:["血糖が下がった時点でインスリンごと中止してしまう","軽〜中等度のアシドーシスに安易に重炭酸を投与する"]
+        }
+      ],
+      summary:{
+        points:[
+          "初期評価の順番は「循環 → カリウム → 血糖・アシドーシス」",
+          "インスリン開始前のカリウム確認が最重要の落とし穴",
+          "治療のゴールは血糖正常化ではなくアニオンギャップ正常化",
+          "HHS(高浸透圧高血糖状態)は高度なアシドーシス・ケトーシスは目立たず血糖・浸透圧がより高値になりやすく、補正はより緩徐に行う"
+        ],
+        refs:["日本糖尿病学会 糖尿病診療ガイドライン","ADA(米国糖尿病学会) DKA/HHS管理指針"]
+      }
+    },
+    {
+      id:"hf", num:3, tag:"心不全・体液量評価",
+      hint:"78歳男性・慢性心不全の既往・肺炎入院中の食思不振",
+      vignette:"78歳男性。慢性心不全(左室駆出率30%程度)の既往があり内服治療中。市中肺炎で入院し抗菌薬治療中。発熱と食思不振のため経口摂取量が低下している。",
+      data:"BP 128/76　HR 92　SpO2 93%(RA)　RR 22　体重は入院時から+3kg　両側下腿浮腫(+2)　頸静脈怒張あり　両側下肺野で捻髪音／BNP上昇　Cr軽度上昇　Na 133",
+      questions:[
+        {
+          q:"経口摂取不良のこの患者に、反射的に維持輸液を開始してよいか。まず何を評価すべきか。",
+          answer:[
+            "<mark>「経口摂取不良・発熱=脱水だから輸液」と反射的に判断すべきではない</mark>",
+            "まず現在のvolume status(体液量)を評価することが先決。心不全患者では輸液が容易に肺水腫・心不全増悪につながる"
+          ],
+          mistakes:["経口摂取量の低下だけを見て維持輸液をルーチンでオーダーする"]
+        },
+        {
+          q:"volume status(体液量)を評価する際に用いる指標を挙げよ。",
+          answer:[
+            "体重の推移",
+            "頸静脈怒張の有無、下腿浮腫の程度",
+            "肺野の聴診所見(捻髪音・喘鳴)",
+            "尿量とIn-Outバランス、BNP・胸部X線などの補助検査"
+          ],
+          mistakes:["単一の検査値(Naやクレアチニンなど)だけでvolume statusを判断する"]
+        },
+        {
+          q:"本症例の身体所見・検査値から、体液量をどう判断するか。",
+          answer:[
+            "入院後の<mark>体重増加(+3kg)、下腿浮腫の増悪、頸静脈怒張、両側下肺野の捻髪音はいずれも体液量過剰(溢水)を示唆</mark>する所見",
+            "脱水を示唆する所見(皮膚ツルゴール低下、起立性低血圧など)は本症例には認めない",
+            "経口摂取不良があっても、現時点では体液量過剰の方向にあると判断すべきで、大量輸液は避ける"
+          ],
+          mistakes:["経口摂取不良という情報だけに引きずられ、既にある溢水所見を軽視する"]
+        },
+        {
+          q:"経口摂取不良への対応として、輸液以外にどのような選択肢があるか。",
+          answer:[
+            "輸液で安易に補うのではなく、<mark>利尿薬の継続・調整や肺炎の治療自体を優先</mark>する",
+            "経口摂取が可能な範囲での少量頻回摂取や、必要に応じた栄養サポートを検討",
+            "電解質(特にNa・K)や腎機能をフォローしながらIn-Outを厳密に記録する"
+          ],
+          mistakes:["「食べられないから点滴」という単純な置き換え発想"]
+        }
+      ],
+      summary:{
+        points:[
+          "心不全患者では発熱・食思不振でも輸液は反射的に増やさない",
+          "volume status評価は体重・頸静脈・浮腫・肺所見のトレンドで行う",
+          "本症例は溢水所見が既にあり、輸液より利尿薬調整とIn-Out管理が優先",
+          "脱水と心不全増悪の鑑別に迷う場合ほど身体所見を丁寧に見る"
+        ],
+        refs:["急性・慢性心不全診療ガイドライン(日本循環器学会)"]
+      }
+    },
+    {
+      id:"sepsis", num:4, tag:"敗血症性ショック",
+      hint:"68歳女性・尿路感染契機の敗血症性ショック",
+      vignette:"68歳女性。数日前からの排尿時痛・発熱があり、当日は反応が悪く血圧低下を家族が心配し救急搬送された。",
+      data:"BP 78/44　HR 128　RR 26　SpO2 94%(O2 3L)　T 39.2℃　乳酸 4.8mmol/L　qSOFA陽性(意識変容・呼吸数・血圧のうち2項目以上該当)",
+      questions:[
+        {
+          q:"初期輸液として何を、どの程度の量・速度で投与するか。",
+          answer:[
+            "<mark>乳酸/酢酸リンゲル液などの細胞外液補充液</mark>を第一選択とし、目安として体重あたり<mark>30mL/kg</mark>を目標に急速輸液を開始する(J-SSCG2024やSurviving Sepsis Campaignの考え方に準拠)",
+            "生理食塩水を大量投与すると高Cl性代謝性アシドーシスをきたしやすいため、乳酸/酢酸リンゲル液が優先されることが多い"
+          ],
+          mistakes:["輸液の種類・量・速度を具体的にオーダーせず「点滴を増やす」とだけ指示してしまう"]
+        },
+        {
+          q:"輸液を行いながら、その反応性(効果)をどのように評価するか。",
+          answer:[
+            "血圧・尿量の推移だけでなく、<mark>乳酸値の再検(乳酸クリアランス)</mark>",
+            "皮膚の冷感・網状皮斑の改善、意識状態",
+            "可能であれば下肢挙上試験や心エコーでの下大静脈径の変化など動的指標を組み合わせて評価する"
+          ],
+          mistakes:["血圧の数字だけを見て輸液の効果を判断する"]
+        },
+        {
+          q:"十分な輸液を行っても血圧が改善しない場合、次に何を検討するか。",
+          answer:[
+            "輸液を漫然と追加し続けるのではなく、<mark>早期にノルアドレナリンなどの血管作動薬の開始を検討</mark>する",
+            "輸液反応性に乏しい場合、輸液だけに固執することはかえって溢水・肺水腫のリスクを高める"
+          ],
+          mistakes:["血圧が上がらないまま輸液だけを延々と追加し、血管作動薬の開始が遅れる"]
+        },
+        {
+          q:"輸液を続ける上でのリスクと、それを避けるための工夫は何か。",
+          answer:[
+            "過剰輸液は<mark>肺水腫、酸素化悪化、腹腔内圧上昇</mark>などのリスクがある",
+            "身体所見(肺聴診、浮腫)やエコーでの下大静脈径などを反復して評価し、fluid balance(In-Out)を記録しながら必要以上の輸液を漫然と継続しないようにする"
+          ],
+          mistakes:["「輸液は多いほど安全」という思い込みで、反応性を評価せず投与を続ける"]
+        }
+      ],
+      summary:{
+        points:[
+          "敗血症性ショックの初期輸液は乳酸/酢酸リンゲル液を30mL/kg目安に急速投与",
+          "効果判定は血圧・尿量に加え乳酸クリアランスや動的指標で行う",
+          "反応不良なら輸液に固執せず早期に血管作動薬を検討する",
+          "過剰輸液のリスクを常に意識し反復評価する"
+        ],
+        refs:["日本版敗血症診療ガイドライン2024(J-SSCG2024)","Surviving Sepsis Campaign 2021"]
+      }
+    },
+    {
+      id:"hyponatremia", num:5, tag:"電解質・低Na血症",
+      hint:"45歳女性・数日続く嘔気と倦怠感",
+      vignette:"45歳女性。数日前からの嘔気・食思不振と全身倦怠感が続き、徐々に反応が鈍くなってきたため受診した。発症の正確な時期ははっきりしない。",
+      data:"BP 106/68　HR 78　意識清明だがやや傾眠傾向／血清Na 116mEq/L　K 3.9mEq/L　血漿浸透圧低下／浮腫や頸静脈怒張はなく、皮膚ツルゴール低下や起立性低血圧などの脱水所見も認めない",
+      questions:[
+        {
+          q:"この患者のvolume statusをどう評価するか。正常体液量性低Na血症の場合、鑑別すべき病態には何があるか。",
+          answer:[
+            "浮腫・頸静脈怒張・肺うっ血がなく、皮膚ツルゴール低下や起立性低血圧などの脱水所見も認めないことから、<mark>体液量は正常(euvolemic)</mark>と判断される",
+            "正常体液量性低Na血症の鑑別には<mark>SIADHのほか、甲状腺機能低下症、続発性副腎皮質機能低下症(副腎不全)、薬剤性(利尿薬・SSRIなど)、心因性多飲</mark>などが含まれる",
+            "尿浸透圧や尿中Naが高いというだけでSIADHと即断せず、甲状腺機能・副腎機能などを含めた除外診断を行う"
+          ],
+          mistakes:["尿浸透圧が高いというだけでSIADHと決めつけ、腎不全・副腎不全・甲状腺機能低下等の除外を怠る"]
+        },
+        {
+          q:"発症時期がはっきりしない場合、急性/慢性のどちらとして治療方針を立てるべきか。",
+          answer:[
+            "発症時期が不明な場合は<mark>慢性経過として扱い、保守的な補正速度を採用</mark>する",
+            "急性発症と誤認して急速に補正すると、浸透圧性脱髄症候群(ODS)のリスクが高まる"
+          ],
+          mistakes:["症状の程度だけで急性/慢性を判断し、確認が取れないまま急性として急速補正してしまう"]
+        },
+        {
+          q:"Na補正速度の安全域はどの程度か。なぜ補正速度に上限を設ける必要があるのか。",
+          answer:[
+            "目安として<mark>24時間で8mEq/L以内</mark>(慢性アルコール多飲・低栄養・肝疾患などODSの高リスク患者ではさらに慎重に6mEq/L程度以内)、48時間でも18mEq/L以内にとどめる",
+            "これを超える急速な補正は、脳が浸透圧の急激な変化に適応できず橋・橋外の脱髄(浸透圧性脱髄症候群、ODS)を引き起こしうるため"
+          ],
+          mistakes:["症状改善を急ぐあまり、24時間での上昇幅を意識せずに輸液を継続する"]
+        },
+        {
+          q:"重症神経症状(痙攣、著明な意識障害など)の有無で初期対応はどう変わるか。補正しすぎた場合はどう対処するか。",
+          answer:[
+            "<mark>重症神経症状がある場合に限り3%高張食塩水</mark>を少量ずつ投与し、最初の数時間でNaを4〜6mEq/L程度上げることを目標に症状改善を待つ",
+            "無症候性であれば原疾患の治療(水分制限など)を優先し、急速な補正は行わない",
+            "補正しすぎてしまった場合は、<mark>5%ブドウ糖液の投与やデスモプレシン投与により意図的にNa上昇を戻す(relowering)</mark>ことを検討する"
+          ],
+          mistakes:["無症候性にもかかわらず3%高張食塩水を使用する","補正しすぎた後の対応(relowering)を知らずに放置する"]
+        }
+      ],
+      summary:{
+        points:[
+          "低Na血症治療の最大の落とし穴は「補正を急ぎすぎること」",
+          "まず体液量評価を行い、正常体液量性ならSIADHに限らず幅広く鑑別する",
+          "発症時期不明なら慢性として保守的に補正する(24hで8mEq/L以内が目安)",
+          "重症症状がある場合のみ3%高張食塩水を用い、overcorrection時はreloweringを検討する"
+        ],
+        refs:["日本内科学会・日本腎臓学会関連の低Na血症診療に関する記載","SIADH診療の手引き"]
+      }
+    }
+  ];
+
+  var PRINCIPLES = [
+    {t:"体液量(volume status)を評価する", d:"体重推移・頸静脈怒張・浮腫・肺所見・尿量など複数の所見から、脱水/正常/過剰のどこにいるかをまず判断する。"},
+    {t:"輸液の種類を選ぶ", d:"循環血漿量を保ちたいときは細胞外液補充液(生食・乳酸/酢酸リンゲル液)、水分・電解質の維持が目的なら維持液、と目的で使い分ける。"},
+    {t:"量・速度を決める", d:"成人の維持量は体重×25〜30mL/kg/day程度が目安。蘇生が必要な病態(ショックなど)ではガイドラインに沿った急速投与量を用いる。"},
+    {t:"電解質の落とし穴を確認する", d:"K・Naは補正速度そのものが合併症の原因になりうる。インスリン投与前のK確認、Na補正速度の上限などを都度チェックする。"},
+    {t:"反復して再評価する", d:"一度の輸液オーダーで終わらせず、尿量・体重・電解質・身体所見で効果と過剰投与の兆候を継続的に見直す。"}
+  ];
+
+  var STORE_KEY = "yueki_progress_v1";
+  var DRAFT_KEY = "yueki_drafts_v1";
+
+  function loadProgress(){
+    try{
+      var p = JSON.parse(localStorage.getItem(STORE_KEY));
+      return (p && typeof p === "object" && !Array.isArray(p)) ? p : {};
+    }catch(e){ return {}; }
+  }
+  function saveProgress(p){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); return true; }catch(e){ return false; }
+  }
+  function loadDrafts(){
+    try{
+      var d = JSON.parse(localStorage.getItem(DRAFT_KEY));
+      return (d && typeof d === "object" && !Array.isArray(d)) ? d : {};
+    }catch(e){ return {}; }
+  }
+  function saveDrafts(d){
+    try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); return true; }catch(e){ return false; }
+  }
+
+  (function validateCasesData(){
+    var seenIds = {}, seenNums = {}, ok = true;
+    CASES.forEach(function(c, i){
+      if(seenIds[c.id]) ok = false;
+      seenIds[c.id] = true;
+      if(seenNums[c.num]) ok = false;
+      seenNums[c.num] = true;
+      if(c.num !== i+1) ok = false;
+      if(!c.questions || c.questions.length === 0) ok = false;
+    });
+    if(!ok && typeof console !== "undefined" && console.warn){
+      console.warn("[yueki] CASES data integrity check failed: ids/nums are not unique/sequential, or a case has no questions.");
+    }
+  })();
+
+  var state = {
+    view:"home",          // home | case | principles
+    caseId:null,
+    reviewOnly:false,
+    progress: loadProgress()
+  };
+
+  var lastSaveFailed = false;
+
+  var app = document.getElementById("app");
+
+  function escapeHtml(s){
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+
+  var VALID_STATUSES = ["good","partial","poor"];
+  function safeStatus(s){
+    return VALID_STATUSES.indexOf(s) !== -1 ? s : "none";
+  }
+
+  function statusLabel(s){
+    if(s==="good") return "自力で言えた";
+    if(s==="partial") return "一部抜けた";
+    if(s==="poor") return "ほぼ言えなかった";
+    return "未挑戦";
+  }
+
+  function caseById(id){
+    for(var i=0;i<CASES.length;i++){ if(CASES[i].id===id) return CASES[i]; }
+    return null;
+  }
+
+  function completedCount(){
+    var n=0;
+    for(var i=0;i<CASES.length;i++){ if(state.progress[CASES[i].id]) n++; }
+    return n;
+  }
+  function reviewCases(){
+    return CASES.filter(function(c){
+      var s = state.progress[c.id];
+      return s === "partial" || s === "poor";
+    });
+  }
+
+  function go(view, caseId){
+    state.view = view;
+    state.caseId = caseId || null;
+    render();
+    window.scrollTo(0,0);
+  }
+
+  /* ---------------- RENDER: HOME ---------------- */
+  function renderHome(){
+    var done = completedCount();
+    var total = CASES.length;
+    var rev = reviewCases();
+
+    var subLine;
+    if(done < total){
+      subLine = (total-done)+"症例が未挑戦";
+    } else if(rev.length){
+      subLine = "復習対象が "+rev.length+" 症例あります";
+    } else {
+      subLine = "全症例クリアです";
+    }
+
+    var html = "";
+    html += '<div class="hero">';
+    html += '  <div class="eyebrow">初期研修医のための輸液学習</div>';
+    html += '  <h1>輸液<br>トレーニング</h1>';
+    html += '  <p>研修医が躓きやすい5つの輸液シナリオ。答えを見る前に、自分の言葉で各設問への考えを書き出してみましょう。</p>';
+    html += '</div>';
+
+    html += '<div class="progress-card">';
+    html += '  <div class="progress-text"><div class="num">'+done+' / '+total+' 症例 挑戦済み</div><div class="sub">'+subLine+'</div></div>';
+    if(rev.length){
+      html += '  <button class="review-pill-btn" data-action="toggle-review">復習</button>';
+    }
+    html += '</div>';
+
+    html += '<button class="principles-cta" data-action="goto-principles"><span><span class="t">輸液を考える基本原則を見る</span><span class="s">体液量評価→輸液の種類→量/速度→電解質の落とし穴→再評価</span></span><span class="arrow">›</span></button>';
+
+    if(state.reviewOnly){
+      html += '<div class="section-head"><h2>復習対象の症例</h2><span class="count">'+rev.length+'件</span></div>';
+      if(rev.length===0){
+        html += '<div class="empty-review">復習対象の症例はありません。<br>「一覧」から症例一覧を確認できます。</div>';
+      } else {
+        html += '<div class="case-grid">'+rev.map(caseCardHtml).join("")+'</div>';
+      }
+    } else {
+      html += '<div class="section-head"><h2>症例一覧</h2><span class="count">'+total+'症例</span></div>';
+      html += '<div class="case-grid">'+CASES.map(caseCardHtml).join("")+'</div>';
+    }
+
+    return html;
+  }
+
+  function caseCardHtml(c){
+    var status = safeStatus(state.progress[c.id]);
+    var numStr = (c.num<10?"0":"")+c.num;
+    return '<button class="case-card" data-action="open-case" data-id="'+c.id+'">'+
+      '<span class="case-num">'+numStr+'</span>'+
+      '<span class="case-body"><span class="tag">'+c.tag+'</span><span class="hint">'+c.hint+'</span></span>'+
+      '<span class="status-chip '+status+'">'+statusLabel(status)+'</span>'+
+    '</button>';
+  }
+
+  /* ---------------- RENDER: CASE ---------------- */
+  var revealCache = {}; // caseId -> bool (revealed) — session-only
+  var draftCache = loadDrafts(); // caseId -> {q0,q1,...} — persisted, debounced
+  var pendingStatus = {}; // caseId -> chosen status this session
+
+  function renderCase(c){
+    var html = "";
+    html += '<div class="case-hero"><div class="tag">症例 '+(c.num<10?"0":"")+c.num+'・'+c.tag+'</div><h1>'+c.hint+'</h1></div>';
+    html += '<div class="vignette">'+c.vignette+'<div class="vitals-line"><b>データ　</b>'+c.data+'</div></div>';
+
+    var revealed = !!revealCache[c.id];
+    var drafts = draftCache[c.id] || {};
+
+    html += '<div id="prompts">';
+    c.questions.forEach(function(qq, i){
+      var key = "q"+i;
+      html += '<div class="prompt-block">';
+      html += '<label><span class="n">Q'+(i+1)+'.</span>'+qq.q+'</label>';
+      html += '<textarea data-field="'+key+'" placeholder="自分の考えを書いてみましょう…">'+ (drafts[key] ? escapeHtml(drafts[key]) : "") +'</textarea>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    if(!revealed){
+      html += '<button class="reveal-btn" data-action="reveal">模範解答を見る</button>';
+    } else {
+      html += renderAnswer(c);
+    }
+
+    return html;
+  }
+
+  function renderAnswer(c){
+    var html = '<div class="answer-wrap">';
+    html += '<div class="divider"><div class="line"></div><span>模範解答・解説</span><div class="line"></div></div>';
+
+    c.questions.forEach(function(qq, i){
+      html += answerCard(i+1, qq);
+    });
+
+    html += summaryCard(c.summary);
+    html += '</div>';
+
+    html += '<div class="assess-block">';
+    html += '<div class="q">自分の答えと照らし合わせて、自己評価しましょう</div>';
+    var cur = pendingStatus[c.id] || state.progress[c.id] || "";
+    html += '<div class="assess-row">';
+    html += assessBtn("good","自力で言えた", cur);
+    html += assessBtn("partial","一部抜けた", cur);
+    html += assessBtn("poor","ほぼ言えなかった", cur);
+    html += '</div>';
+    if(cur && lastSaveFailed){
+      html += '<div class="save-warning">⚠ この端末には保存できませんでした。プライベートブラウズ中か、ストレージが無効になっている可能性があります。この記録はこの画面を離れると失われます。</div>';
+    }
+    html += '</div>';
+
+    if(cur){
+      html += '<div class="after-assess">';
+      html += '<button class="nav-btn primary" data-action="next-case">次の症例へ</button>';
+      html += '<button class="nav-btn ghost" data-action="goto-home">一覧に戻る</button>';
+      html += '</div>';
+    }
+
+    return html;
+  }
+
+  function answerCard(n, qq){
+    var html = '<div class="answer-card"><h3><span class="ico check">'+n+'</span>設問'+n+'の考え方</h3>';
+    html += '<ul>'+qq.answer.map(function(t){return '<li>'+t+'</li>';}).join("")+'</ul>';
+    if(qq.mistakes && qq.mistakes.length){
+      html += '<div class="mistake-box"><b>よくある誤答</b><ul>'+qq.mistakes.map(function(t){return '<li>'+t+'</li>';}).join("")+'</ul></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function summaryCard(summary){
+    var html = '<div class="answer-card"><h3><span class="ico sum">✓</span>症例のまとめ</h3>';
+    html += '<ul>'+summary.points.map(function(t){return '<li>'+t+'</li>';}).join("")+'</ul>';
+    html += '<div class="refs-box"><b>参照</b><ul>'+summary.refs.map(function(t){return '<li>'+t+'</li>';}).join("")+'</ul></div>';
+    html += '</div>';
+    return html;
+  }
+
+  function assessBtn(kind, label, cur){
+    return '<button class="assess-btn '+kind+(cur===kind?' active':'')+'" data-action="assess" data-kind="'+kind+'">'+label+'</button>';
+  }
+
+  /* ---------------- RENDER: PRINCIPLES ---------------- */
+  function renderPrinciples(){
+    var html = "";
+    html += '<div class="principles-hero"><div class="eyebrow">輸液を考える基本原則</div><h1>どの症例でも、まずこの順番で考える</h1><p>個々の病態の知識より先に、この5ステップを体に染み込ませましょう。</p></div>';
+    html += '<div class="escalation-note"><div class="en-label">⚡ 判断に迷ったら</div><div class="en-body">輸液の種類・量・速度に迷う場面ほど、<mark>自己判断で漫然と継続せず</mark>早めに上級医へ相談してください。</div></div>';
+    html += '<div class="flow">';
+    PRINCIPLES.forEach(function(f,i){
+      html += '<div class="flow-step">';
+      html += '<div class="rail"><div class="node">'+(i+1)+'</div>'+(i<PRINCIPLES.length-1?'<div class="stem"></div>':'')+'</div>';
+      html += '<div class="content"><h3>'+f.t+'</h3><p>'+f.d+'</p></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    html += '<div class="principles-foot">迷ったら、この5つに立ち返る。</div>';
+    return html;
+  }
+
+  /* ---------------- MASTER RENDER ---------------- */
+  function render(){
+    var topbarHtml, mainHtml;
+
+    if(state.view==="home"){
+      topbarHtml = state.reviewOnly
+        ? '<button class="back" data-action="goto-home-full">‹ 一覧</button><div class="title">復習リスト</div>'
+        : '<div class="title">輸液トレーニング</div>';
+      mainHtml = renderHome();
+    } else if(state.view==="case"){
+      var c = caseById(state.caseId);
+      if(!c){
+        state.view = "home";
+        state.caseId = null;
+        return render();
+      }
+      var numStr = (c.num<10?"0":"")+c.num;
+      topbarHtml = '<button class="back" data-action="goto-home">‹ 一覧</button><div class="title">症例 '+numStr+'</div>';
+      mainHtml = renderCase(c);
+    } else if(state.view==="principles"){
+      topbarHtml = '<button class="back" data-action="goto-home">‹ 一覧</button><div class="title">輸液を考える基本原則</div>';
+      mainHtml = renderPrinciples();
+    }
+
+    app.innerHTML = '<div class="topbar">'+topbarHtml+'</div><main>'+mainHtml+'</main>';
+    bindEvents();
+  }
+
+  /* ---------------- EVENTS ---------------- */
+  function nextCaseAfter(current){
+    var pool = state.reviewOnly ? reviewCases() : CASES;
+    if(pool.length === 0){ pool = CASES; }
+    var idx = -1;
+    for(var i=0;i<pool.length;i++){ if(pool[i].id===current.id){ idx = i; break; } }
+    return idx === -1 ? pool[0] : pool[(idx+1) % pool.length];
+  }
+
+  function bindEvents(){
+    app.querySelectorAll("[data-action]").forEach(function(el){
+      el.addEventListener("click", function(){
+        var action = el.getAttribute("data-action");
+        if(action==="open-case"){
+          revealCache[el.getAttribute("data-id")] = false;
+          delete pendingStatus[el.getAttribute("data-id")];
+          lastSaveFailed = false;
+          go("case", el.getAttribute("data-id"));
+        } else if(action==="goto-home"){
+          go("home");
+        } else if(action==="goto-home-full"){
+          state.reviewOnly = false;
+          render();
+        } else if(action==="toggle-review"){
+          state.reviewOnly = true;
+          render();
+        } else if(action==="goto-principles"){
+          go("principles");
+        } else if(action==="reveal"){
+          collectDraft(state.caseId, true);
+          revealCache[state.caseId] = true;
+          render();
+          var wrap = app.querySelector(".answer-wrap");
+          if(wrap) wrap.scrollIntoView({behavior:"smooth", block:"start"});
+        } else if(action==="assess"){
+          var kind = el.getAttribute("data-kind");
+          var c0 = caseById(state.caseId);
+          if(!c0) return;
+          pendingStatus[state.caseId] = kind;
+          state.progress[state.caseId] = kind;
+          lastSaveFailed = !saveProgress(state.progress);
+          render();
+        } else if(action==="next-case"){
+          var c = caseById(state.caseId);
+          if(!c) return;
+          var next = nextCaseAfter(c);
+          revealCache[next.id] = false;
+          delete pendingStatus[next.id];
+          go("case", next.id);
+        }
+      });
+    });
+
+    app.querySelectorAll("textarea[data-field]").forEach(function(ta){
+      ta.addEventListener("input", function(){
+        collectDraft(state.caseId, false);
+      });
+    });
+  }
+
+  var draftSaveTimer = null;
+  function collectDraft(caseId, flushNow){
+    var d = {};
+    app.querySelectorAll("textarea[data-field]").forEach(function(ta){
+      d[ta.getAttribute("data-field")] = ta.value;
+    });
+    draftCache[caseId] = d;
+    if(draftSaveTimer){ clearTimeout(draftSaveTimer); draftSaveTimer = null; }
+    if(flushNow){
+      saveDrafts(draftCache);
+    } else {
+      draftSaveTimer = setTimeout(function(){ saveDrafts(draftCache); }, 400);
+    }
+  }
+  window.addEventListener("pagehide", function(){ saveDrafts(draftCache); });
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "hidden") saveDrafts(draftCache);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
