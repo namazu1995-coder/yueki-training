@@ -219,12 +219,6 @@
   }
   .reveal-btn:active{ transform:scale(.99); }
 
-  .reveal-marker{
-    margin:14px 0 10px; font-size:11.5px; font-weight:700; color:var(--primary);
-    letter-spacing:.06em; display:flex; align-items:center; gap:8px;
-  }
-  .reveal-marker::before{ content:""; flex:none; width:14px; height:1px; background:var(--primary); opacity:.5; }
-
   .answer-wrap{ margin-top:28px; }
   .answer-wrap .divider{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
   .answer-wrap .divider .line{ flex:1; height:1px; background:var(--line); }
@@ -812,10 +806,14 @@
       var taId = "ta-"+c.id+"-"+i;
       html += '<div class="prompt-block">';
       html += '<label for="'+taId+'"><span class="n">Q'+(i+1)+'.</span>'+qq.q+'</label>';
-      html += '<textarea id="'+taId+'" data-field="'+key+'" placeholder="自分の考えを書いてみましょう…">'+ (drafts[key] ? escapeHtml(drafts[key]) : "") +'</textarea>';
+      // The textarea (and the reader's own written answer in it) is only shown before
+      // reveal — once the model answer is visible, redisplaying their own draft text
+      // underneath the question was just clutter, not something to compare against inline.
+      if(!revealed){
+        html += '<textarea id="'+taId+'" data-field="'+key+'" placeholder="自分の考えを書いてみましょう…">'+ (drafts[key] ? escapeHtml(drafts[key]) : "") +'</textarea>';
+      }
       html += '</div>';
       if(revealed){
-        html += '<div class="reveal-marker">模範解答</div>';
         html += answerCard(i+1, qq);
       }
     });
