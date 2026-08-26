@@ -148,6 +148,56 @@
     assert("保存した内容がloadProgress()で読み戻せる", reloaded.postop === "good");
     if(savedProgressRaw === null) localStorage.removeItem(STORE_KEY); else localStorage.setItem(STORE_KEY, savedProgressRaw);
 
+    // --- loadDrafts() drops non-string leaf values instead of crashing later ---
+    // Regression test for: hand-edited/corrupted localStorage containing a number/boolean/
+    // object in a draft field used to reach escapeHtml() unguarded and throw, silently
+    // breaking that case's screen (button taps did nothing, no error shown).
+    var savedDraftsRaw2 = localStorage.getItem(DRAFT_KEY);
+    try{
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        postop: {q0: 12345, q1: true, q2: {nested:"obj"}, q3: "これは正常な文字列"}
+      }));
+      var draftsAfterCorruption = hooks.loadDrafts();
+      assert("loadDrafts()は数値の下書き値を捨てる", draftsAfterCorruption.postop.q0 === undefined, JSON.stringify(draftsAfterCorruption.postop));
+      assert("loadDrafts()は真偽値の下書き値を捨てる", draftsAfterCorruption.postop.q1 === undefined);
+      assert("loadDrafts()はオブジェクトの下書き値を捨てる", draftsAfterCorruption.postop.q2 === undefined);
+      assert("loadDrafts()は正常な文字列の下書き値は保持する", draftsAfterCorruption.postop.q3 === "これは正常な文字列");
+    } finally {
+      if(savedDraftsRaw2 === null) localStorage.removeItem(DRAFT_KEY); else localStorage.setItem(DRAFT_KEY, savedDraftsRaw2);
+    }
+
+    // --- completedCount() agrees with safeStatus() on what counts as "done" ---
+    // Regression test for: completedCount() used a plain truthy check while the status
+    // chips used safeStatus()'s whitelist, so a corrupted progress value could show as
+    // "N/5 挑戦済み" on the home header while its own card still said "未挑戦".
+    state.progress = {postop:"good", dka:"garbage-status-value", hf:"partial"};
+    assert("completedCount()はsafeStatusの基準外の値をカウントしない", hooks.completedCount() === 2, "実際: " + hooks.completedCount());
+    state.progress = originalProgress;
+
+    // --- persistDrafts() merges instead of clobbering another tab's writes ---
+    // Regression test for: the pagehide/visibilitychange flush used to write this tab's
+    // whole in-memory draftCache verbatim, so a background tab could silently overwrite a
+    // case another (foreground) tab had just saved but this tab never opened.
+    var savedDraftsRaw3 = localStorage.getItem(DRAFT_KEY);
+    try{
+      var draftCache = hooks.getDraftCache();
+      Object.keys(draftCache).forEach(function(k){ delete draftCache[k]; }); // simulate "this tab touched nothing yet"
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        dka: {q0:"別タブが書いた新しい下書き"}
+      }));
+      hooks.persistDrafts();
+      var afterMerge = hooks.loadDrafts();
+      assert("persistDrafts()は自タブが触っていない症例の下書きを消さない", afterMerge.dka && afterMerge.dka.q0 === "別タブが書いた新しい下書き", JSON.stringify(afterMerge));
+
+      hooks.setDraftCacheEntry("postop", {q0:"このタブでの新しい編集"});
+      hooks.persistDrafts();
+      var afterMerge2 = hooks.loadDrafts();
+      assert("persistDrafts()は自タブで触った症例は自タブの内容を優先する", afterMerge2.postop && afterMerge2.postop.q0 === "このタブでの新しい編集");
+      assert("persistDrafts()は他タブ由来の症例もマージ後に残る", afterMerge2.dka && afterMerge2.dka.q0 === "別タブが書いた新しい下書き");
+    } finally {
+      if(savedDraftsRaw3 === null) localStorage.removeItem(DRAFT_KEY); else localStorage.setItem(DRAFT_KEY, savedDraftsRaw3);
+    }
+
     render();
   }
 

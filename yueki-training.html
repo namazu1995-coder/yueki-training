@@ -13,16 +13,16 @@
     --surface-2:#EAF0F0;
     --ink:#132326;
     --ink-soft:#51666C;
-    --ink-faint:#8298A0;
+    --ink-faint:#5C6F76;
     --line:#DAE4E4;
     --primary:#0B6E6E;
     --primary-strong:#084F4F;
     --primary-tint:#E2F1F0;
-    --accent:#C1782E;
+    --accent:#9C5A1E;
     --accent-tint:#FBEDDC;
     --good:#2E7D4F;
     --good-tint:#E4F3EA;
-    --warn:#C1782E;
+    --warn:#9C5A1E;
     --warn-tint:#FBEDDC;
     --bad:#B23A3A;
     --bad-tint:#FBE7E5;
@@ -135,8 +135,9 @@
   .progress-text .sub{font-size:12.5px; color:var(--ink-faint); margin-top:2px;}
   .review-pill-btn{
     appearance:none; border:1px solid var(--warn); background:var(--warn-tint); color:var(--warn);
-    font-weight:700; font-size:12.5px; padding:8px 12px; border-radius:999px; cursor:pointer;
+    font-weight:700; font-size:12.5px; padding:8px 14px; border-radius:999px; cursor:pointer;
     white-space:nowrap; font-family:inherit;
+    min-height:44px; display:inline-flex; align-items:center;
   }
 
   .principles-cta{
@@ -634,7 +635,22 @@
   function loadDrafts(){
     try{
       var d = JSON.parse(localStorage.getItem(DRAFT_KEY));
-      return (d && typeof d === "object" && !Array.isArray(d)) ? d : {};
+      if(!d || typeof d !== "object" || Array.isArray(d)) return {};
+      // Drop any non-string leaf value (hand-edited localStorage, a stray number/object/
+      // boolean, data from a future format) rather than passing it through — escapeHtml()
+      // assumes a string and throws on anything else, which used to take the whole case
+      // view down with an uncaught exception the moment that case was opened.
+      var clean = {};
+      Object.keys(d).forEach(function(caseId){
+        var entry = d[caseId];
+        if(!entry || typeof entry !== "object" || Array.isArray(entry)) return;
+        var cleanEntry = {};
+        Object.keys(entry).forEach(function(k){
+          if(typeof entry[k] === "string") cleanEntry[k] = entry[k];
+        });
+        clean[caseId] = cleanEntry;
+      });
+      return clean;
     }catch(e){ return {}; }
   }
   function saveDrafts(d){
@@ -650,9 +666,15 @@
       seenNums[c.num] = true;
       if(c.num !== i+1) ok = false;
       if(!c.questions || c.questions.length === 0) ok = false;
+      c.questions && c.questions.forEach(function(q){
+        if(!q.answer || q.answer.length === 0) ok = false;
+        if(!q.mistakes) ok = false;
+      });
+      if(!c.summary || !c.summary.points || c.summary.points.length === 0) ok = false;
+      if(!c.summary || !c.summary.refs || c.summary.refs.length === 0) ok = false;
     });
     if(!ok && typeof console !== "undefined" && console.warn){
-      console.warn("[yueki] CASES data integrity check failed: ids/nums are not unique/sequential, or a case has no questions.");
+      console.warn("[yueki] CASES data integrity check failed: ids/nums are not unique/sequential, a case has no questions, a question has no answer, or a case is missing summary points/refs.");
     }
   })();
 
@@ -690,7 +712,9 @@
 
   function completedCount(){
     var n=0;
-    for(var i=0;i<CASES.length;i++){ if(state.progress[CASES[i].id]) n++; }
+    // Uses the same safeStatus() whitelist as the status chips, so a corrupted/unexpected
+    // progress value can't be counted as "done" here while showing as "未挑戦" on its card.
+    for(var i=0;i<CASES.length;i++){ if(safeStatus(state.progress[CASES[i].id]) !== "none") n++; }
     return n;
   }
   function reviewCases(){
@@ -796,6 +820,10 @@
       }
     });
     html += '</div>';
+
+    if(draftSaveFailed){
+      html += '<div class="save-warning">⚠ この端末には保存できませんでした。プライベートブラウズ中か、ストレージが無効になっている可能性があります。書いた内容はこの画面を離れると失われます。</div>';
+    }
 
     if(!revealed){
       html += '<button class="reveal-btn" data-action="reveal">模範解答を見る</button>';
@@ -918,6 +946,7 @@
           revealCache[el.getAttribute("data-id")] = false;
           delete pendingStatus[el.getAttribute("data-id")];
           lastSaveFailed = false;
+          draftSaveFailed = false;
           go("case", el.getAttribute("data-id"));
         } else if(action==="goto-home"){
           go("home");
@@ -962,6 +991,23 @@
   }
 
   var draftSaveTimer = null;
+  var draftSaveFailed = false;
+
+  // Writes draftCache to localStorage, but first re-reads whatever is currently on disk and
+  // keeps its entries for any case this tab's draftCache doesn't itself hold data for. Without
+  // this, a background tab's periodic pagehide/visibilitychange flush would blindly overwrite
+  // the whole drafts object with its own (possibly stale) in-memory snapshot, silently
+  // clobbering edits another tab made to a case this tab never opened. Cases this tab did
+  // touch still win with this tab's own (more current) version.
+  function persistDrafts(){
+    var onDisk = loadDrafts();
+    var merged = {};
+    Object.keys(onDisk).forEach(function(id){ merged[id] = onDisk[id]; });
+    Object.keys(draftCache).forEach(function(id){ merged[id] = draftCache[id]; });
+    draftSaveFailed = !saveDrafts(merged);
+    return merged;
+  }
+
   function collectDraft(caseId, flushNow){
     var d = {};
     app.querySelectorAll("textarea[data-field]").forEach(function(ta){
@@ -970,14 +1016,14 @@
     draftCache[caseId] = d;
     if(draftSaveTimer){ clearTimeout(draftSaveTimer); draftSaveTimer = null; }
     if(flushNow){
-      saveDrafts(draftCache);
+      persistDrafts();
     } else {
-      draftSaveTimer = setTimeout(function(){ saveDrafts(draftCache); }, 400);
+      draftSaveTimer = setTimeout(persistDrafts, 400);
     }
   }
-  window.addEventListener("pagehide", function(){ saveDrafts(draftCache); });
+  window.addEventListener("pagehide", persistDrafts);
   document.addEventListener("visibilitychange", function(){
-    if(document.visibilityState === "hidden") saveDrafts(draftCache);
+    if(document.visibilityState === "hidden") persistDrafts();
   });
 
   // Exposed only for tests.html (loaded via iframe) to reach otherwise-private module
@@ -992,6 +1038,10 @@
     saveProgress: saveProgress,
     loadDrafts: loadDrafts,
     saveDrafts: saveDrafts,
+    completedCount: completedCount,
+    persistDrafts: persistDrafts,
+    getDraftCache: function(){ return draftCache; },
+    setDraftCacheEntry: function(id, obj){ draftCache[id] = obj; },
     getState: function(){ return state; }
   };
 
