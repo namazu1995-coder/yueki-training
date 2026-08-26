@@ -14,7 +14,9 @@ start yueki-training.html
 
 ## 公開URL / QRコード
 
-GitHub Pages: https://namazu1995-coder.github.io/yueki-training/ (このURLをQRコード化)
+GitHub Pages: https://namazu1995-coder.github.io/yueki-training/
+
+`yueki_qr.png` が上記URLのQRコード(スマホ・タブレットで読み込んでそのまま利用可能)。
 
 ## 医師が確認すべき医学的内容(要レビュー)
 
