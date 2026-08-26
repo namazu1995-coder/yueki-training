@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>輸液トレーニング - 内部テスト</title>
+<style>
+  body{ font-family:monospace; padding:20px; background:#111; color:#eee; }
+  h1{ font-size:16px; }
+  .pass{ color:#6fc796; }
+  .fail{ color:#e27c7c; font-weight:bold; }
+  #summary{ margin-top:16px; padding:12px; border:1px solid #444; font-weight:bold; }
+  li{ margin-bottom:4px; }
+  iframe{ display:none; }
+</style>
+</head>
+<body>
+<h1>輸液トレーニング — 内部ロジックの回帰テスト</h1>
+<p>アプリ本体(yueki-training.html)を隠しiframeで読み込み、window.__yueki_test_hooks__ 経由で状態遷移・データ整合性・localStorageの堅牢性を検証する。ビルドツール不要、このファイルをブラウザで直接開くだけで実行される。</p>
+<ul id="results"></ul>
+<div id="summary">実行中…</div>
+<iframe id="app" src="yueki-training.html"></iframe>
+
+<script>
+(function(){
+  "use strict";
+
+  var results = [];
+  function assert(name, cond, detail){
+    results.push({name:name, pass:!!cond, detail:detail||""});
+  }
+
+  function render(){
+    var ul = document.getElementById("results");
+    var passCount = 0;
+    results.forEach(function(r){
+      var li = document.createElement("li");
+      li.className = r.pass ? "pass" : "fail";
+      li.textContent = (r.pass ? "PASS " : "FAIL ") + r.name + (r.detail ? " — " + r.detail : "");
+      ul.appendChild(li);
+      if(r.pass) passCount++;
+    });
+    var summary = document.getElementById("summary");
+    var allPass = passCount === results.length;
+    summary.textContent = passCount + " / " + results.length + " passed" + (allPass ? " — ALL GREEN" : " — FAILURES PRESENT");
+    summary.style.color = allPass ? "#6fc796" : "#e27c7c";
+    // Machine-readable hook for automated checking (e.g. via javascript_tool / read_console).
+    window.__test_summary__ = {total: results.length, passed: passCount, allPass: allPass, results: results};
+    if(window.console){
+      console.log("[yueki-tests] " + passCount + "/" + results.length + (allPass ? " ALL GREEN" : " FAILURES PRESENT"));
+      results.filter(function(r){return !r.pass;}).forEach(function(r){ console.error("[yueki-tests] FAIL: " + r.name + " — " + r.detail); });
+    }
+  }
+
+  function runTests(hooks){
+    var CASES = hooks.CASES;
+
+    // --- CASES data integrity ---
+    assert("CASESには5症例ある", CASES.length === 5, "実際: " + CASES.length);
+    var ids = {}, nums = {}, idsOk = true, numsOk = true, seqOk = true;
+    CASES.forEach(function(c, i){
+      if(ids[c.id]) idsOk = false;
+      ids[c.id] = true;
+      if(nums[c.num]) numsOk = false;
+      nums[c.num] = true;
+      if(c.num !== i + 1) seqOk = false;
+    });
+    assert("症例idはすべて一意", idsOk);
+    assert("症例numはすべて一意", numsOk);
+    assert("症例numは1から連番", seqOk);
+    var shapeOk = CASES.every(function(c){
+      if(!c.questions || c.questions.length === 0) return false;
+      return c.questions.every(function(q){
+        return typeof q.q === "string" && q.q.length > 0 &&
+          Array.isArray(q.answer) && q.answer.length > 0 &&
+          Array.isArray(q.mistakes);
+      }) && c.summary && Array.isArray(c.summary.points) && c.summary.points.length > 0 &&
+        Array.isArray(c.summary.refs) && c.summary.refs.length > 0;
+    });
+    assert("各症例に設問・模範解答・まとめが揃っている", shapeOk);
+
+    // --- safeStatus() whitelist ---
+    assert("safeStatus('good') はそのまま通す", hooks.safeStatus("good") === "good");
+    assert("safeStatus('partial') はそのまま通す", hooks.safeStatus("partial") === "partial");
+    assert("safeStatus('poor') はそのまま通す", hooks.safeStatus("poor") === "poor");
+    assert("safeStatus(未知の文字列) は none にフォールバック", hooks.safeStatus("hacked<script>") === "none");
+    assert("safeStatus(undefined) は none にフォールバック", hooks.safeStatus(undefined) === "none");
+    assert("safeStatus(数値) は none にフォールバック", hooks.safeStatus(123) === "none");
+    assert("safeStatus(オブジェクト) は none にフォールバック", hooks.safeStatus({}) === "none");
+
+    // --- caseById() ---
+    assert("caseById(存在するid) が正しい症例を返す", hooks.caseById("dka") && hooks.caseById("dka").id === "dka");
+    assert("caseById(存在しないid) は例外を投げずnullを返す", hooks.caseById("nonexistent-case-xyz") === null);
+
+    // --- reviewCases() with tampered/foreign localStorage-style progress ---
+    var state = hooks.getState();
+    var originalProgress = state.progress;
+    state.progress = {
+      postop: "good",
+      dka: "partial",
+      hf: "poor",
+      sepsis: "not-a-real-status",   // simulates hand-edited localStorage
+      unknown_case_id_from_old_version: "poor" // stray key, e.g. from a removed case
+    };
+    var rev = hooks.reviewCases();
+    var revIds = rev.map(function(c){ return c.id; }).sort();
+    assert("reviewCases()は不正なstatus値を復習対象に含めない", revIds.indexOf("sepsis") === -1, "実際: " + JSON.stringify(revIds));
+    assert("reviewCases()は存在しない症例idで例外を投げない", true); // reaching here means no throw
+    assert("reviewCases()はpartial/poorのみ返す", revIds.length === 2 && revIds[0] === "dka" && revIds[1] === "hf", "実際: " + JSON.stringify(revIds));
+    state.progress = originalProgress;
+
+    // --- nextCaseAfter() wraparound ---
+    state.reviewOnly = false;
+    var seq = [];
+    var cur = CASES[0];
+    for(var i = 0; i < CASES.length; i++){
+      seq.push(cur.id);
+      cur = hooks.nextCaseAfter(cur);
+    }
+    assert("nextCaseAfter()は全症例を1周してから最初に戻る", cur.id === CASES[0].id, "1周後: " + cur.id);
+    assert("nextCaseAfter()の巡回順はnum順と一致", JSON.stringify(seq) === JSON.stringify(CASES.map(function(c){return c.id;})), "実際: " + JSON.stringify(seq));
+
+    // --- loadProgress()/loadDrafts() resilience against corrupted localStorage ---
+    var STORE_KEY = "yueki_progress_v1", DRAFT_KEY = "yueki_drafts_v1";
+    var savedProgressRaw = localStorage.getItem(STORE_KEY);
+    var savedDraftsRaw = localStorage.getItem(DRAFT_KEY);
+    try{
+      localStorage.setItem(STORE_KEY, "{not valid json");
+      assert("loadProgress()は壊れたJSONで例外を投げず{}を返す", JSON.stringify(hooks.loadProgress()) === "{}");
+
+      localStorage.setItem(STORE_KEY, "[1,2,3]"); // valid JSON, wrong shape (array not object)
+      assert("loadProgress()は配列JSONを{}にフォールバックする", JSON.stringify(hooks.loadProgress()) === "{}");
+
+      localStorage.setItem(STORE_KEY, "\"just a string\"");
+      assert("loadProgress()は文字列JSONを{}にフォールバックする", JSON.stringify(hooks.loadProgress()) === "{}");
+
+      localStorage.setItem(DRAFT_KEY, "{broken");
+      assert("loadDrafts()は壊れたJSONで例外を投げず{}を返す", JSON.stringify(hooks.loadDrafts()) === "{}");
+    } finally {
+      if(savedProgressRaw === null) localStorage.removeItem(STORE_KEY); else localStorage.setItem(STORE_KEY, savedProgressRaw);
+      if(savedDraftsRaw === null) localStorage.removeItem(DRAFT_KEY); else localStorage.setItem(DRAFT_KEY, savedDraftsRaw);
+    }
+
+    // --- save/load round-trip ---
+    var testProgress = {postop:"good"};
+    var saveOk = hooks.saveProgress(testProgress);
+    assert("saveProgress()は成功時trueを返す", saveOk === true);
+    var reloaded = hooks.loadProgress();
+    assert("保存した内容がloadProgress()で読み戻せる", reloaded.postop === "good");
+    if(savedProgressRaw === null) localStorage.removeItem(STORE_KEY); else localStorage.setItem(STORE_KEY, savedProgressRaw);
+
+    render();
+  }
+
+  var iframe = document.getElementById("app");
+  iframe.addEventListener("load", function(){
+    // Give the app's own render() a tick to finish before reaching into its state.
+    setTimeout(function(){
+      var hooks = iframe.contentWindow.__yueki_test_hooks__;
+      if(!hooks){
+        assert("アプリのテストフックが読み込めること", false, "__yueki_test_hooks__ が見つかりません(file://の分離やCSPでiframeが期待通り動いていない可能性)");
+        render();
+        return;
+      }
+      try{
+        runTests(hooks);
+      }catch(e){
+        assert("テスト実行が例外なく完了すること", false, e.message);
+        render();
+      }
+    }, 50);
+  });
+})();
+</script>
+</body>
+</html>

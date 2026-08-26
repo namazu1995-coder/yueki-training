@@ -205,7 +205,7 @@
   .prompt-block textarea{
     width:100%; min-height:88px; resize:vertical; border-radius:12px;
     border:1px solid var(--line); background:var(--surface); color:var(--ink);
-    padding:12px 14px; font-family:inherit; font-size:14px; line-height:1.6;
+    padding:12px 14px; font-family:inherit; font-size:16px; line-height:1.6;
   }
   .prompt-block textarea:focus{ outline:2px solid var(--primary); outline-offset:1px; }
   .prompt-block textarea::placeholder{ color:var(--ink-faint); }
@@ -217,6 +217,12 @@
     box-shadow:0 4px 14px rgba(11,110,110,.28);
   }
   .reveal-btn:active{ transform:scale(.99); }
+
+  .reveal-marker{
+    margin:14px 0 10px; font-size:11.5px; font-weight:700; color:var(--primary);
+    letter-spacing:.06em; display:flex; align-items:center; gap:8px;
+  }
+  .reveal-marker::before{ content:""; flex:none; width:14px; height:1px; background:var(--primary); opacity:.5; }
 
   .answer-wrap{ margin-top:28px; }
   .answer-wrap .divider{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
@@ -770,13 +776,24 @@
     var revealed = !!revealCache[c.id];
     var drafts = draftCache[c.id] || {};
 
+    // Each question's own answer card is rendered directly beneath that question's
+    // textarea (not batched into a separate section at the bottom) — with 4 questions
+    // per case the page gets long, and a "all questions, then all answers" layout meant
+    // question 3/4's answer could only be matched back to its question text by scrolling
+    // all the way up past the other question blocks. Keeping question+answer as one
+    // adjacent unit fixes that regardless of how far down the case the reader is.
     html += '<div id="prompts">';
     c.questions.forEach(function(qq, i){
       var key = "q"+i;
+      var taId = "ta-"+c.id+"-"+i;
       html += '<div class="prompt-block">';
-      html += '<label><span class="n">Q'+(i+1)+'.</span>'+qq.q+'</label>';
-      html += '<textarea data-field="'+key+'" placeholder="自分の考えを書いてみましょう…">'+ (drafts[key] ? escapeHtml(drafts[key]) : "") +'</textarea>';
+      html += '<label for="'+taId+'"><span class="n">Q'+(i+1)+'.</span>'+qq.q+'</label>';
+      html += '<textarea id="'+taId+'" data-field="'+key+'" placeholder="自分の考えを書いてみましょう…">'+ (drafts[key] ? escapeHtml(drafts[key]) : "") +'</textarea>';
       html += '</div>';
+      if(revealed){
+        html += '<div class="reveal-marker">模範解答</div>';
+        html += answerCard(i+1, qq);
+      }
     });
     html += '</div>';
 
@@ -791,12 +808,6 @@
 
   function renderAnswer(c){
     var html = '<div class="answer-wrap">';
-    html += '<div class="divider"><div class="line"></div><span>模範解答・解説</span><div class="line"></div></div>';
-
-    c.questions.forEach(function(qq, i){
-      html += answerCard(i+1, qq);
-    });
-
     html += summaryCard(c.summary);
     html += '</div>';
 
@@ -922,8 +933,8 @@
           collectDraft(state.caseId, true);
           revealCache[state.caseId] = true;
           render();
-          var wrap = app.querySelector(".answer-wrap");
-          if(wrap) wrap.scrollIntoView({behavior:"smooth", block:"start"});
+          var firstAnswer = app.querySelector(".answer-card");
+          if(firstAnswer) firstAnswer.scrollIntoView({behavior:"smooth", block:"start"});
         } else if(action==="assess"){
           var kind = el.getAttribute("data-kind");
           var c0 = caseById(state.caseId);
@@ -968,6 +979,21 @@
   document.addEventListener("visibilitychange", function(){
     if(document.visibilityState === "hidden") saveDrafts(draftCache);
   });
+
+  // Exposed only for tests.html (loaded via iframe) to reach otherwise-private module
+  // state/logic without a build step or bundler. Never referenced by the app's own UI code.
+  window.__yueki_test_hooks__ = {
+    CASES: CASES,
+    safeStatus: safeStatus,
+    caseById: caseById,
+    reviewCases: reviewCases,
+    nextCaseAfter: nextCaseAfter,
+    loadProgress: loadProgress,
+    saveProgress: saveProgress,
+    loadDrafts: loadDrafts,
+    saveDrafts: saveDrafts,
+    getState: function(){ return state; }
+  };
 
   render();
 })();
