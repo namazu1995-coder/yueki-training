@@ -252,10 +252,14 @@
   .mistake-box ul{ margin:0; padding-left:18px; color:var(--bad); }
   .refs-box{
     margin-top:14px; padding-top:12px; border-top:1px dashed var(--line);
-    font-size:12.5px; color:var(--ink-soft);
+    font-size:12px; color:var(--ink-faint);
   }
-  .refs-box b{ display:block; font-size:11.5px; font-weight:700; color:var(--ink-faint); margin-bottom:4px; letter-spacing:.04em; }
-  .refs-box ul{ margin:0; padding-left:18px; color:var(--ink-soft); }
+  .refs-box b{ display:block; font-size:11px; font-weight:700; color:var(--ink-faint); margin-bottom:6px; letter-spacing:.04em; }
+  .refs-box ol{ margin:0; padding-left:18px; color:var(--ink-faint); }
+  .refs-box li{ margin-bottom:6px; line-height:1.55; }
+  .refs-box li:last-child{ margin-bottom:0; }
+  .refs-box .ref-source{ color:var(--ink-faint); }
+  .refs-box a{ color:var(--ink-soft); word-break:break-all; }
 
   .assess-block{ margin-top:26px; }
   .assess-block .q{ font-size:14px; font-weight:700; margin-bottom:12px; text-align:center; }
@@ -398,7 +402,10 @@
           "過剰輸液は合併症を増やす。restrictive寄りの管理が近年の主流",
           "尿量・体重・電解質でこまめに再評価する"
         ],
-        refs:["日本麻酔科学会 周術期管理チームテキスト","ERAS(Enhanced Recovery After Surgery)関連文献"]
+        refs:[
+          {authors:"PeriOperative Quality Initiative (POQI)", title:"Perioperative fluid management: evidence-based consensus recommendations from the international multidisciplinary PeriOperative Quality Initiative", source:"British Journal of Anaesthesia", year:"2024", url:"https://www.bjanaesthesia.org/article/S0007-0912(24)00506-3/fulltext"},
+          {authors:"Gustafsson UO, et al.(ERAS® Society)", title:"Guidelines for Perioperative Care in Elective Colorectal Surgery: Enhanced Recovery After Surgery (ERAS®) Society Recommendations: 2018", source:"World Journal of Surgery 43:659-695", year:"2019", url:"https://doi.org/10.1007/s00268-018-4844-y"}
+        ]
       }
     },
     {
@@ -448,7 +455,10 @@
           "治療のゴールは血糖正常化ではなくアニオンギャップ正常化",
           "HHS(高浸透圧高血糖状態)は高度なアシドーシス・ケトーシスは目立たず血糖・浸透圧がより高値になりやすく、補正はより緩徐に行う"
         ],
-        refs:["日本糖尿病学会 糖尿病診療ガイドライン","ADA(米国糖尿病学会) DKA/HHS管理指針"]
+        refs:[
+          {authors:"American Diabetes Association, et al.", title:"Hyperglycemic Crises in Adults With Diabetes: A Consensus Report", source:"Diabetes Care 47(8):1257-1275", year:"2024", url:"https://doi.org/10.2337/dc24-2306"},
+          {authors:"日本糖尿病学会", title:"糖尿病診療ガイドライン2024", source:"南江堂", year:"2024", url:"https://minds.jcqhc.or.jp/summary/c00864/"}
+        ]
       }
     },
     {
@@ -501,7 +511,9 @@
           "本症例は溢水所見が既にあり、輸液より利尿薬調整とIn-Out管理が優先",
           "脱水と心不全増悪の鑑別に迷う場合ほど身体所見を丁寧に見る"
         ],
-        refs:["急性・慢性心不全診療ガイドライン(日本循環器学会)"]
+        refs:[
+          {authors:"日本循環器学会/日本心不全学会合同ガイドライン", title:"2021年JCS/JHFSガイドラインフォーカスアップデート版 急性・慢性心不全診療", source:"日本循環器学会・日本心不全学会", year:"2021", url:"https://www.jhfs.or.jp/statement-guideline/guideline.html"}
+        ]
       }
     },
     {
@@ -551,7 +563,10 @@
           "反応不良なら輸液に固執せず早期に血管作動薬を検討する",
           "過剰輸液のリスクを常に意識し反復評価する"
         ],
-        refs:["日本版敗血症診療ガイドライン2024(J-SSCG2024)","Surviving Sepsis Campaign 2021"]
+        refs:[
+          {authors:"日本版敗血症診療ガイドライン2024特別委員会(日本集中治療医学会・日本救急医学会)", title:"日本版敗血症診療ガイドライン2024(J-SSCG2024)", source:"日本集中治療医学会雑誌 31:S1165-S1313", year:"2024", url:"https://www.jstage.jst.go.jp/article/jsicm/31/Supplement/31_2400001/_pdf"},
+          {authors:"Evans L, Rhodes A, Alhazzani W, et al.", title:"Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock 2021", source:"Critical Care Medicine 49(11):e1063-e1143", year:"2021", url:"https://doi.org/10.1097/CCM.0000000000005337"}
+        ]
       }
     },
     {
@@ -602,7 +617,10 @@
           "発症時期不明なら慢性として保守的に補正する(24hで8mEq/L以内が目安)",
           "重症症状がある場合のみ3%高張食塩水を用い、overcorrection時はreloweringを検討する"
         ],
-        refs:["日本内科学会・日本腎臓学会関連の低Na血症診療に関する記載","SIADH診療の手引き"]
+        refs:[
+          {authors:"Spasovski G, Vanholder R, Allolio B, et al.(Hyponatraemia Guideline Development Group)", title:"Clinical practice guideline on diagnosis and treatment of hyponatraemia", source:"European Journal of Endocrinology 170(3):G1-G47", year:"2014", url:"https://doi.org/10.1530/EJE-13-1020"},
+          {authors:"Verbalis JG, Goldsmith SR, Greenberg A, et al.", title:"Diagnosis, Evaluation, and Treatment of Hyponatremia: Expert Panel Recommendations", source:"American Journal of Medicine 126(10 Suppl 1):S1-S42", year:"2013", url:"https://doi.org/10.1016/j.amjmed.2013.07.006"}
+        ]
       }
     }
   ];
@@ -666,10 +684,19 @@
         if(!q.mistakes) ok = false;
       });
       if(!c.summary || !c.summary.points || c.summary.points.length === 0) ok = false;
-      if(!c.summary || !c.summary.refs || c.summary.refs.length === 0) ok = false;
+      // refs is intentionally optional — a case with no genuinely relevant, verified
+      // reference simply omits the section rather than being padded with a citation
+      // that doesn't actually back that case's content. When refs ARE present, though,
+      // each entry must at least have a title (and, if given, a url that looks like one).
+      if(c.summary && c.summary.refs){
+        c.summary.refs.forEach(function(r){
+          if(!r.title) ok = false;
+          if(r.url && r.url.indexOf("http") !== 0) ok = false;
+        });
+      }
     });
     if(!ok && typeof console !== "undefined" && console.warn){
-      console.warn("[yueki] CASES data integrity check failed: ids/nums are not unique/sequential, a case has no questions, a question has no answer, or a case is missing summary points/refs.");
+      console.warn("[yueki] CASES data integrity check failed: ids/nums are not unique/sequential, a case has no questions, a question has no answer, a case is missing summary points, or a reference is missing its title / has a malformed url.");
     }
   })();
 
@@ -874,9 +901,24 @@
   function summaryCard(summary){
     var html = '<div class="answer-card"><h3><span class="ico sum">✓</span>症例のまとめ</h3>';
     html += '<ul>'+summary.points.map(function(t){return '<li>'+t+'</li>';}).join("")+'</ul>';
-    html += '<div class="refs-box"><b>参照</b><ul>'+summary.refs.map(function(t){return '<li>'+t+'</li>';}).join("")+'</ul></div>';
+    // A case with no verified reference simply has an empty/absent refs array — the
+    // section is omitted rather than padded with something not actually citable for
+    // that case's specific content.
+    if(summary.refs && summary.refs.length){
+      html += '<div class="refs-box"><b>参考文献</b><ol>'+summary.refs.map(refItemHtml).join("")+'</ol></div>';
+    }
     html += '</div>';
     return html;
+  }
+
+  function refItemHtml(ref){
+    var cite = ref.authors ? (ref.authors + '. ') : "";
+    cite += ref.title + '.';
+    if(ref.source || ref.year){
+      cite += ' <span class="ref-source">' + [ref.source, ref.year].filter(Boolean).join(', ') + '.</span>';
+    }
+    var link = ref.url ? ' <a href="'+ref.url+'" target="_blank" rel="noopener noreferrer">'+ref.url+'</a>' : "";
+    return '<li>' + cite + link + '</li>';
   }
 
   function assessBtn(kind, label, cur){

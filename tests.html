@@ -73,10 +73,29 @@
         return typeof q.q === "string" && q.q.length > 0 &&
           Array.isArray(q.answer) && q.answer.length > 0 &&
           Array.isArray(q.mistakes);
-      }) && c.summary && Array.isArray(c.summary.points) && c.summary.points.length > 0 &&
-        Array.isArray(c.summary.refs) && c.summary.refs.length > 0;
+      }) && c.summary && Array.isArray(c.summary.points) && c.summary.points.length > 0;
     });
     assert("各症例に設問・模範解答・まとめが揃っている", shapeOk);
+
+    // --- references are optional per case, but well-formed when present ---
+    // A case may legitimately have zero references (nothing genuinely citable for that
+    // exact content) — refs is allowed to be missing/empty. Whenever it IS present,
+    // every entry must at least have a title, and any url must look like a real link
+    // (the UI renders it as a clickable <a href>, so a malformed value would silently
+    // produce a dead or broken link rather than an error).
+    var refsOk = CASES.every(function(c){
+      var refs = c.summary && c.summary.refs;
+      if(!refs) return true;
+      if(!Array.isArray(refs)) return false;
+      return refs.every(function(r){
+        var titleOk = typeof r.title === "string" && r.title.length > 0;
+        var urlOk = !r.url || /^https?:\/\//.test(r.url);
+        return titleOk && urlOk;
+      });
+    });
+    assert("参考文献はある場合すべてtitleと正しい形式のurlを持つ", refsOk);
+    var casesWithRefs = CASES.filter(function(c){ return c.summary && c.summary.refs && c.summary.refs.length > 0; });
+    assert("参考文献を持つ症例が少なくとも1つある(refs機構自体が空振りしていないことの確認)", casesWithRefs.length > 0, "実際: " + casesWithRefs.length);
 
     // --- safeStatus() whitelist ---
     assert("safeStatus('good') はそのまま通す", hooks.safeStatus("good") === "good");
