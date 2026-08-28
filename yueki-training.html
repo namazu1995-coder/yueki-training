@@ -405,6 +405,7 @@
           "尿量・体重・電解質でこまめに再評価する"
         ],
         refs:[
+          {authors:"National Institute for Health and Care Excellence (NICE)", title:"Intravenous fluid therapy in adults in hospital", source:"NICE Clinical Guideline CG174", year:"2013(2017年サーベイランス確認)", url:"https://www.nice.org.uk/guidance/cg174"},
           {authors:"PeriOperative Quality Initiative (POQI)", title:"Perioperative fluid management: evidence-based consensus recommendations from the international multidisciplinary PeriOperative Quality Initiative", source:"British Journal of Anaesthesia", year:"2024", url:"https://www.bjanaesthesia.org/article/S0007-0912(24)00506-3/fulltext"},
           {authors:"Gustafsson UO, et al.(ERAS® Society)", title:"Guidelines for Perioperative Care in Elective Colorectal Surgery: Enhanced Recovery After Surgery (ERAS®) Society Recommendations: 2018", source:"World Journal of Surgery 43:659-695", year:"2019", url:"https://doi.org/10.1007/s00268-018-4844-y"}
         ]
@@ -429,8 +430,8 @@
           q:"インスリン投与を開始する前に必ず確認すべき電解質は何か。その理由も述べよ。",
           answer:[
             "<mark>血清カリウム値</mark>",
-            "K<3.3mEq/Lの場合、インスリン投与によりカリウムが細胞内へ急速にシフトし<mark>致死的な低カリウム血症</mark>をきたしうるため、インスリン開始前(または同時)にカリウム補充を先行させる",
-            "K 3.3〜5.3mEq/Lならカリウムを輸液に加えながらインスリンを開始、K>5.3mEq/Lなら補充せずインスリンを開始しつつ頻回に再検する"
+            "K<3.5mEq/Lの場合、インスリン投与によりカリウムが細胞内へ急速にシフトし<mark>致死的な低カリウム血症</mark>をきたしうるため、インスリン開始を保留し、カリウムを目安10mEq/hr程度で先行補充してK>3.5mEq/Lになってから開始する",
+            "K 3.5mEq/L以上ならインスリンを開始してよい。K<5.0mEq/Lであれば同時に輸液1Lあたりカリウム20〜30mEq程度を加え、K 4〜5mEq/Lを維持するよう補充する。K≥5.0mEq/Lでは補充せずインスリンを開始し、頻回(開始2時間後、以降4時間毎が目安)に再検する"
           ],
           mistakes:["カリウム値を確認せずにインスリンを開始してしまう"]
         },
@@ -448,8 +449,8 @@
         {
           q:"輸液内容を切り替えるタイミングと、重炭酸投与の適応をどう考えるか。",
           answer:[
-            "血糖が<mark>200〜250mg/dL程度まで低下した時点でブドウ糖含有液に切り替え</mark>、インスリン持続投与自体はアシドーシス・ケトーシスが改善するまで継続する",
-            "重炭酸投与は<mark>原則不要</mark>で、pH<6.9程度の重度アシドーシスなど限定的な状況でのみ考慮される(エビデンスは強くない)"
+            "血糖が<mark>250mg/dL未満まで低下した時点でブドウ糖含有液に切り替え</mark>、インスリン持続投与自体はアシドーシス・ケトーシスが改善するまで継続する",
+            "重炭酸投与は<mark>原則不要</mark>で、pH<7.0程度の重度アシドーシスなど限定的な状況でのみ考慮される(エビデンスは強くない)"
           ],
           mistakes:["血糖が下がった時点でインスリンごと中止してしまう","軽〜中等度のアシドーシスに安易に重炭酸を投与する"]
         }
@@ -609,9 +610,9 @@
         {
           q:"Na補正速度の安全域はどの程度か。なぜ補正速度に上限を設ける必要があるのか。",
           answer:[
-            "目安として<mark>24時間で8mEq/L以内</mark>、48時間でも18mEq/L以内にとどめる",
-            "慢性アルコール多飲・低栄養・肝疾患などODSの高リスク患者では、さらに慎重に24時間<mark>6mEq/L程度以内</mark>とする",
-            "これを超える急速な補正は、脳が浸透圧の急激な変化に適応できず橋・橋外の脱髄(浸透圧性脱髄症候群、ODS)を引き起こしうるため"
+            "リスクに応じて上限が異なる: 慢性アルコール多飲・低栄養・肝疾患などODSの<mark>高リスク患者では24時間8mEq/L以内</mark>、平均的リスクの患者では24時間10mEq/L以内、低リスクの患者でも24時間12mEq/L以内が目安とされる",
+            "リスク層別化に迷う場合は安全側に倒し<mark>24時間8mEq/L以内</mark>を目標にするのが実践的。いずれの場合も48時間で18mEq/L以内にとどめる",
+            "24時間で10mEq/Lや48時間で18mEq/Lを超えるとODSリスクが明らかに高まる。脳が浸透圧の急激な変化に適応できず橋・橋外の脱髄(浸透圧性脱髄症候群、ODS)を引き起こしうるため"
           ],
           mistakes:["症状改善を急ぐあまり、24時間での上昇幅を意識せずに輸液を継続する"]
         },
@@ -619,8 +620,8 @@
           q:"神経症状の程度によって初期対応はどう変わるか。本症例(意識清明だが傾眠傾向)はどちらに当たるか。補正しすぎた場合はどう対処するか。",
           answer:[
             "神経症状の程度で段階的に考える(「重症/無症候性」の二分法だけで判断しない)",
-            "<mark>重症</mark>(痙攣、著明な意識障害・昏睡、呼吸循環抑制)なら3%高張食塩水を速やかに少量ずつ投与し、最初の数時間でNaを4〜6mEq/L程度上げることを目標に症状改善を待つ",
-            "<mark>中等症</mark>(本症例のような傾眠傾向、混迷、嘔気・嘔吐など)でも、重症例に準じて3%高張食塩水の単回投与(目安150mL程度を20分かけて)を考慮することが多い。<mark>「痙攣や昏睡がないから無症候性」と即断しない</mark>",
+            "<mark>重症</mark>(痙攣、著明な意識障害・昏睡、呼吸循環抑制)なら3%高張食塩水100〜150mLを20〜40分かけて静注し、<mark>最初の6時間以内にNaを4〜6mEq/L上げる</mark>ことを目標に症状改善を待つ",
+            "<mark>中等症</mark>(本症例のような傾眠傾向、混迷、嘔気・嘔吐など)には明確に定まった単回投与量はないが、重症例に準じた3%高張食塩水投与が考慮されることが多い。<mark>「痙攣や昏睡がないから無症候性」と即断しない</mark>",
             "無症候性〜軽症であれば急速な補正は行わず、原疾患の治療(水分制限など)を優先する",
             "補正しすぎてしまった場合は、<mark>5%ブドウ糖液の投与やデスモプレシン投与により意図的にNa上昇を戻す(relowering)</mark>ことを検討する",
             "<mark>Na<120mEq/Lや神経症状を伴う症例は、自己判断で補正方針を決めず早期に上級医・内分泌代謝科または腎臓内科に相談する</mark>"
@@ -637,6 +638,7 @@
           "overcorrection時はreloweringを検討し、Na<120や神経症状を伴う例は早期に専門科へ相談する"
         ],
         refs:[
+          {authors:"Spasovski G.", title:"Hyponatraemia—treatment standard 2024", source:"Nephrology Dialysis Transplantation 39(10):1583-1592", year:"2024", url:"https://doi.org/10.1093/ndt/gfae162"},
           {authors:"Spasovski G, Vanholder R, Allolio B, et al.(Hyponatraemia Guideline Development Group)", title:"Clinical practice guideline on diagnosis and treatment of hyponatraemia", source:"European Journal of Endocrinology 170(3):G1-G47", year:"2014", url:"https://doi.org/10.1530/EJE-13-1020"},
           {authors:"Verbalis JG, Goldsmith SR, Greenberg A, et al.", title:"Diagnosis, Evaluation, and Treatment of Hyponatremia: Expert Panel Recommendations", source:"American Journal of Medicine 126(10 Suppl 1):S1-S42", year:"2013", url:"https://doi.org/10.1016/j.amjmed.2013.07.006"}
         ]
