@@ -327,6 +327,54 @@
     font-size:13px; color:var(--primary-strong); text-align:center; font-weight:700;
   }
 
+  /* ---------- PRINCIPLES: reference data (compartments / fluid composition) ---------- */
+  .ref-section-head{ margin-top:34px; }
+  .ref-section-head .eyebrow{ font-size:11px; font-weight:700; color:var(--primary); letter-spacing:.1em; text-transform:uppercase; }
+  .ref-section-head h2{ font-size:16px; font-weight:900; margin-top:6px; color:var(--ink); }
+  .ref-section-head p{ font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.6; }
+
+  .compartment-card{
+    margin-top:14px; background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:18px 20px; box-shadow:var(--shadow);
+  }
+  .compartment-bar{ display:flex; height:30px; border-radius:8px; overflow:hidden; border:1px solid var(--line); }
+  .comp-seg{ height:100%; }
+  .comp-seg.icf{ background:var(--primary); }
+  .comp-seg.interstitial{ background:var(--primary); opacity:.55; }
+  .comp-seg.plasma{ background:var(--accent); }
+  .comp-seg.solid{ background:var(--surface-2); }
+  .compartment-legend{ display:flex; flex-wrap:wrap; gap:10px 16px; margin-top:14px; }
+  .legend-item{ font-size:12.5px; color:var(--ink-soft); display:flex; align-items:center; gap:6px; }
+  .legend-item b{ color:var(--ink); font-weight:700; }
+  .legend-item .dot{ width:10px; height:10px; border-radius:3px; flex:none; }
+  .legend-item .dot.icf{ background:var(--primary); }
+  .legend-item .dot.interstitial{ background:var(--primary); opacity:.55; }
+  .legend-item .dot.plasma{ background:var(--accent); }
+  .legend-item .dot.solid{ background:var(--surface-2); border:1px solid var(--line); }
+  .compartment-example{ font-size:12.5px; color:var(--ink-faint); margin-top:14px; padding-top:12px; border-top:1px dashed var(--line); line-height:1.6; }
+
+  .fluid-grid{ display:flex; flex-direction:column; gap:12px; margin-top:14px; }
+  .fluid-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:16px 18px; box-shadow:var(--shadow);
+  }
+  .fluid-card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .fluid-card-head h3{ font-size:14.5px; font-weight:700; color:var(--ink); }
+  .fluid-card-head .fluid-alt{ display:block; font-size:11.5px; color:var(--ink-faint); margin-top:2px; }
+  .fluid-badge{ flex:none; font-size:11px; font-weight:700; padding:5px 10px; border-radius:999px; white-space:nowrap; }
+  .fluid-badge.ecf{ background:var(--primary-tint); color:var(--primary-strong); }
+  .fluid-badge.maint{ background:var(--accent-tint); color:var(--accent); }
+  .fluid-badge.free{ background:var(--surface-2); color:var(--ink-soft); }
+  .fluid-comp{ display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+  .comp-chip{
+    font-size:12px; font-variant-numeric:tabular-nums; background:var(--surface-2); color:var(--ink);
+    padding:5px 9px; border-radius:8px; display:inline-flex; gap:5px; align-items:baseline;
+  }
+  .comp-chip b{ font-weight:700; color:var(--ink-soft); font-size:11px; }
+  .comp-chip.osm{ background:var(--primary-tint); color:var(--primary-strong); }
+  .comp-chip.osm b{ color:var(--primary-strong); }
+  .fluid-note{ font-size:12.5px; color:var(--ink-soft); margin-top:10px; line-height:1.6; }
+
   a{color:var(--primary);}
   button:focus-visible, textarea:focus-visible, .case-card:focus-visible{
     outline:2px solid var(--primary); outline-offset:2px;
@@ -675,6 +723,51 @@
     {t:"反復して再評価する", d:"一度の輸液オーダーで終わらせず、尿量・体重・電解質・身体所見で効果と過剰投与の兆候を継続的に見直す。"}
   ];
 
+  // Body-weight-relative water distribution (the standard "60-40-20" teaching figure).
+  // Segment widths sum to 100 (= 100% of body weight), so ICF+interstitial+plasma (=60%,
+  // total body water) plus the non-water "solid" remainder render as one continuous bar.
+  var BODY_COMPARTMENTS = [
+    {key:"icf", label:"細胞内液(ICF)", pct:40},
+    {key:"interstitial", label:"間質液", pct:15},
+    {key:"plasma", label:"血漿", pct:5},
+    {key:"solid", label:"水分以外", pct:40}
+  ];
+
+  var FLUID_COMPOSITIONS = [
+    {
+      name:"生理食塩水", alt:"0.9%生食", category:"細胞外液補充液", catClass:"ecf",
+      comp:[{k:"Na⁺",v:"154"},{k:"Cl⁻",v:"154"}],
+      osm:"約1(等張)",
+      note:"電解質はNa・Clのみで、K・Ca・ブドウ糖は含まない。大量急速投与では<mark>高Cl性代謝性アシドーシス</mark>をきたしうる。"
+    },
+    {
+      name:"乳酸リンゲル液", alt:"代表例:ラクテック", category:"細胞外液補充液", catClass:"ecf",
+      comp:[{k:"Na⁺",v:"130"},{k:"K⁺",v:"4"},{k:"Ca²⁺",v:"3"},{k:"Cl⁻",v:"109"},{k:"乳酸⁻",v:"28"}],
+      osm:"約1(等張)",
+      note:"生食よりNa・Clが低く血漿組成に近い(いわゆるバランス輸液)。乳酸は肝で代謝され重炭酸となりアシドーシス是正にも働くが、<mark>高度肝不全・循環不全では乳酸代謝が遅延</mark>する点に注意。"
+    },
+    {
+      name:"3号液(維持液)", alt:"代表例:ソルデム3A", category:"維持輸液", catClass:"maint",
+      comp:[{k:"Na⁺",v:"35"},{k:"K⁺",v:"20"},{k:"Cl⁻",v:"35"},{k:"乳酸⁻",v:"20"},{k:"ブドウ糖",v:"4.3%"}],
+      osm:"約1(等張)",
+      note:"Naが生食の約1/4と少なく、経口摂取不能時の1日水分・電解質維持が目的。<mark>同じ「3号液」でも製品によりNa/K濃度は異なる</mark>ため、投与前に添付文書で組成を確認する。"
+    },
+    {
+      name:"5%ブドウ糖液", alt:"5%糖液", category:"自由水", catClass:"free",
+      comp:[{k:"ブドウ糖",v:"5%(50g/L)"},{k:"電解質",v:"なし"}],
+      osm:"約1(輸液バッグ内)",
+      note:"ブドウ糖が代謝されると実質的に電解質を含まない水(自由水)となり、細胞外液だけでなく細胞内液にも均等に分布する。<mark>大量・急速投与は医原性の低Na血症の原因</mark>になりうる。"
+    }
+  ];
+
+  var FLUID_REFS = [
+    {authors:"Brinkman JE, Dorius B, Sharma S.", title:"Physiology, Body Fluids", source:"StatPearls [Internet], NCBI Bookshelf(NBK482447)", year:"2023", url:"https://www.ncbi.nlm.nih.gov/books/NBK482447/"},
+    {authors:"山中英治(監修)", title:"体液の分布と浸透圧(ナースが知っておきたい 栄養の基本と栄養サポートの進め方 Part1-4)", source:"ディアケア(旧アルメディアWEB)", year:"2019", url:"https://www.almediaweb.jp/nutrition/part1/04.html"},
+    {authors:"大塚製薬工場", title:"大塚生食注 添付文書", source:"医療関係者向け医薬品情報", year:"2023年5月改訂", url:"https://www.otsukakj.jp/med_nutrition/dikj/menu1/000224.php"},
+    {authors:"大塚製薬工場", title:"ラクテック注 添付文書", source:"医療関係者向け医薬品情報", year:"2023年3月改訂", url:"https://www.otsukakj.jp/med_nutrition/dikj/menu1/000298.php"},
+    {authors:"テルモ", title:"ソルデム3A輸液 添付文書", source:"医薬品医療機器総合機構(PMDA) 医療用医薬品情報", year:"2023年5月改訂", url:"https://www.info.pmda.go.jp/go/pack/3319510A4083_1_05/3319510A4083_1_05?view=body&lang=ja"}
+  ];
+
   var STORE_KEY = "yueki_progress_v1";
   var DRAFT_KEY = "yueki_drafts_v1";
 
@@ -982,6 +1075,47 @@
     });
     html += '</div>';
     html += '<div class="principles-foot">迷ったら、この5つに立ち返る。</div>';
+    html += renderFluidReference();
+    return html;
+  }
+
+  /* ---------------- RENDER: FLUID REFERENCE DATA (compartments / composition) ---------------- */
+  function renderFluidReference(){
+    var html = "";
+
+    html += '<div class="ref-section-head"><div class="eyebrow">参考データ</div><h2>体液の分画</h2><p>輸液の効果を考えるときの前提となる、体重に対するおおまかな水分分布(成人男性の目安)。</p></div>';
+    html += '<div class="compartment-card">';
+    html += '<div class="compartment-bar">';
+    BODY_COMPARTMENTS.forEach(function(seg){
+      html += '<div class="comp-seg '+seg.key+'" style="width:'+seg.pct+'%"></div>';
+    });
+    html += '</div>';
+    html += '<div class="compartment-legend">';
+    BODY_COMPARTMENTS.forEach(function(seg){
+      html += '<div class="legend-item"><span class="dot '+seg.key+'"></span>'+seg.label+' <b>'+seg.pct+'%</b></div>';
+    });
+    html += '</div>';
+    html += '<p class="compartment-example">体重60kgの成人での目安:総体液量(TBW)は約36L(体重の60%)。内訳は<b>細胞内液(ICF)約24L・間質液約9L・血漿約3L</b>。女性・高齢者・肥満者では体脂肪率が高く総水分比率はやや低め(約50%)、乳児は逆に高め(約70〜80%)となる。</p>';
+    html += '</div>';
+
+    html += '<div class="ref-section-head"><div class="eyebrow">参考データ</div><h2>代表的な輸液製剤の組成</h2><p>日本の臨床でよく使われる代表的な製剤の組成例(電解質の単位はmEq/L)。同じ分類でも製品により濃度が異なるため、実投与前に必ず添付文書で確認する。</p></div>';
+    html += '<div class="fluid-grid">';
+    FLUID_COMPOSITIONS.forEach(function(f){
+      html += '<div class="fluid-card">';
+      html += '<div class="fluid-card-head"><div><h3>'+f.name+'</h3><span class="fluid-alt">'+f.alt+'</span></div><span class="fluid-badge '+f.catClass+'">'+f.category+'</span></div>';
+      html += '<div class="fluid-comp">';
+      f.comp.forEach(function(c){
+        html += '<span class="comp-chip"><b>'+c.k+'</b>'+c.v+'</span>';
+      });
+      html += '<span class="comp-chip osm"><b>浸透圧比</b>'+f.osm+'</span>';
+      html += '</div>';
+      html += '<p class="fluid-note">'+f.note+'</p>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="refs-box"><b>参考文献</b><ol>'+FLUID_REFS.map(refItemHtml).join("")+'</ol></div>';
+
     return html;
   }
 
