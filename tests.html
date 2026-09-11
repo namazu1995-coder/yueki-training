@@ -160,8 +160,7 @@
     }
 
     // --- save/load round-trip ---
-    var testProgress = {postop:"good"};
-    var saveOk = hooks.saveProgress(testProgress);
+    var saveOk = hooks.saveProgress("postop", "good");
     assert("saveProgress()は成功時trueを返す", saveOk === true);
     var reloaded = hooks.loadProgress();
     assert("保存した内容がloadProgress()で読み戻せる", reloaded.postop === "good");
@@ -193,10 +192,12 @@
     assert("completedCount()はsafeStatusの基準外の値をカウントしない", hooks.completedCount() === 2, "実際: " + hooks.completedCount());
     state.progress = originalProgress;
 
-    // --- persistDrafts() merges instead of clobbering another tab's writes ---
-    // Regression test for: the pagehide/visibilitychange flush used to write this tab's
-    // whole in-memory draftCache verbatim, so a background tab could silently overwrite a
-    // case another (foreground) tab had just saved but this tab never opened.
+    // --- saveDrafts(caseId, fields) merges per-case instead of clobbering another tab's writes ---
+    // Regression test for: the old pagehide/visibilitychange flush wrote this tab's whole
+    // in-memory draftCache verbatim (or, after a first fix, merged the whole draftCache object
+    // over disk), so a background tab could silently overwrite a case another (foreground) tab
+    // had just saved but this tab never opened — or, in the merged-whole-cache version, even a
+    // case this tab HAD opened earlier in the session, if this tab's copy had since gone stale.
     var savedDraftsRaw3 = localStorage.getItem(DRAFT_KEY);
     try{
       var draftCache = hooks.getDraftCache();
@@ -204,15 +205,27 @@
       localStorage.setItem(DRAFT_KEY, JSON.stringify({
         dka: {q0:"別タブが書いた新しい下書き"}
       }));
-      hooks.persistDrafts();
+      hooks.saveDrafts("postop", {q0:"このタブでの新しい編集"});
       var afterMerge = hooks.loadDrafts();
-      assert("persistDrafts()は自タブが触っていない症例の下書きを消さない", afterMerge.dka && afterMerge.dka.q0 === "別タブが書いた新しい下書き", JSON.stringify(afterMerge));
+      assert("saveDrafts()は自タブが触っていない症例の下書きを消さない", afterMerge.dka && afterMerge.dka.q0 === "別タブが書いた新しい下書き", JSON.stringify(afterMerge));
+      assert("saveDrafts()は指定した症例を保存する", afterMerge.postop && afterMerge.postop.q0 === "このタブでの新しい編集");
 
-      hooks.setDraftCacheEntry("postop", {q0:"このタブでの新しい編集"});
-      hooks.persistDrafts();
-      var afterMerge2 = hooks.loadDrafts();
-      assert("persistDrafts()は自タブで触った症例は自タブの内容を優先する", afterMerge2.postop && afterMerge2.postop.q0 === "このタブでの新しい編集");
-      assert("persistDrafts()は他タブ由来の症例もマージ後に残る", afterMerge2.dka && afterMerge2.dka.q0 === "別タブが書いた新しい下書き");
+      // The specific bug this fix closes: this tab touched "hf" earlier in the session (so its
+      // in-memory draftCache still holds a now-stale copy), another tab then wrote a newer
+      // version of "hf" to disk, and only THEN does this tab flush a save for a different,
+      // unrelated case ("postop" again). A whole-draftCache merge would replay this tab's stale
+      // "hf" entry and clobber the other tab's newer write; a per-case save must not touch "hf"
+      // at all since "hf" isn't the case being saved.
+      hooks.setDraftCacheEntry("hf", {q0:"このタブが以前に書いた古い下書き"}); // stale, never (re)saved
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        dka: {q0:"別タブが書いた新しい下書き"},
+        hf: {q0:"別タブが後から書いたより新しい下書き"},
+        postop: {q0:"このタブでの新しい編集"}
+      }));
+      hooks.saveDrafts("postop", {q0:"このタブでの2回目の編集"});
+      var afterStaleFlush = hooks.loadDrafts();
+      assert("saveDrafts()は自タブの古いdraftCacheエントリで無関係な症例を上書きしない", afterStaleFlush.hf && afterStaleFlush.hf.q0 === "別タブが後から書いたより新しい下書き", JSON.stringify(afterStaleFlush.hf));
+      assert("saveDrafts()は指定した症例だけ正しく更新する", afterStaleFlush.postop && afterStaleFlush.postop.q0 === "このタブでの2回目の編集");
     } finally {
       if(savedDraftsRaw3 === null) localStorage.removeItem(DRAFT_KEY); else localStorage.setItem(DRAFT_KEY, savedDraftsRaw3);
     }

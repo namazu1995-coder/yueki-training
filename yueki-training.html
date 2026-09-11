@@ -26,6 +26,10 @@
     --warn-tint:#FBEDDC;
     --bad:#B23A3A;
     --bad-tint:#FBE7E5;
+    --on-primary:#fff;
+    --on-good:#fff;
+    --on-warn:#fff;
+    --on-bad:#fff;
     --shadow: 0 1px 2px rgba(19,35,38,.06), 0 6px 20px rgba(19,35,38,.05);
   }
   @media (prefers-color-scheme: dark){
@@ -48,6 +52,10 @@
       --warn-tint:#332615;
       --bad:#E27C7C;
       --bad-tint:#3A1B1B;
+      --on-primary:#0B2024;
+      --on-good:#0B2024;
+      --on-warn:#2B1B08;
+      --on-bad:#3A0F0F;
       --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
     }
   }
@@ -70,6 +78,10 @@
     --warn-tint:#332615;
     --bad:#E27C7C;
     --bad-tint:#3A1B1B;
+    --on-primary:#0B2024;
+    --on-good:#0B2024;
+    --on-warn:#2B1B08;
+    --on-bad:#3A0F0F;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
   }
 
@@ -214,7 +226,7 @@
 
   .reveal-btn{
     width:100%; margin-top:24px; appearance:none; border:none; cursor:pointer;
-    background:var(--primary); color:#fff; font-weight:700; font-size:15px;
+    background:var(--primary); color:var(--on-primary); font-weight:700; font-size:15px;
     padding:15px; border-radius:14px; font-family:inherit;
     box-shadow:0 4px 14px rgba(11,110,110,.28);
   }
@@ -234,10 +246,10 @@
   }
   .answer-card h3 .ico{
     width:22px;height:22px;border-radius:7px;flex:none; display:flex;align-items:center;justify-content:center;
-    font-size:12px; font-weight:900; color:#fff;
+    font-size:12px; font-weight:900;
   }
-  .ico.check{background:var(--primary);}
-  .ico.sum{background:var(--accent);}
+  .ico.check{background:var(--primary); color:var(--on-primary);}
+  .ico.sum{background:var(--accent); color:var(--on-warn);}
   .answer-card ul{ margin:0; padding-left:20px; font-size:14px; color:var(--ink); }
   .answer-card li{ margin-bottom:6px; }
   .answer-card li:last-child{ margin-bottom:0; }
@@ -273,9 +285,9 @@
   .assess-btn.good{ border-color:var(--good); }
   .assess-btn.partial{ border-color:var(--warn); }
   .assess-btn.poor{ border-color:var(--bad); }
-  .assess-btn.good.active{ background:var(--good); color:#fff; }
-  .assess-btn.partial.active{ background:var(--warn); color:#fff; }
-  .assess-btn.poor.active{ background:var(--bad); color:#fff; }
+  .assess-btn.good.active{ background:var(--good); color:var(--on-good); }
+  .assess-btn.partial.active{ background:var(--warn); color:var(--on-warn); }
+  .assess-btn.poor.active{ background:var(--bad); color:var(--on-bad); }
   .save-warning{
     margin-top:12px; padding:10px 14px; border-radius:10px;
     background:var(--bad-tint); color:var(--bad); font-size:12.5px; font-weight:600; line-height:1.5;
@@ -290,7 +302,7 @@
     appearance:none; border:none; cursor:pointer; border-radius:12px; padding:14px;
     font-family:inherit; font-size:14.5px; font-weight:700; text-align:center;
   }
-  .nav-btn.primary{ background:var(--primary); color:#fff; }
+  .nav-btn.primary{ background:var(--primary); color:var(--on-primary); }
   .nav-btn.ghost{ background:var(--surface-2); color:var(--ink-soft); border:1px solid var(--line); }
 
   /* ---------- PRINCIPLES VIEW ---------- */
@@ -313,7 +325,7 @@
   .flow-step:last-child{ padding-bottom:0; }
   .flow-step .rail{ display:flex; flex-direction:column; align-items:center; flex:none; }
   .flow-step .node{
-    width:32px; height:32px; border-radius:50%; background:var(--primary); color:#fff;
+    width:32px; height:32px; border-radius:50%; background:var(--primary); color:var(--on-primary);
     display:flex; align-items:center; justify-content:center; font-weight:900; font-size:13px;
     font-family:"Zen Kaku Gothic New",sans-serif; flex:none; z-index:1;
   }
@@ -684,8 +696,16 @@
       return (p && typeof p === "object" && !Array.isArray(p)) ? p : {};
     }catch(e){ return {}; }
   }
-  function saveProgress(p){
-    try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); return true; }catch(e){ return false; }
+  // Read-merge-write, scoped to the single case that changed: writing a wholesale
+  // snapshot can clobber a concurrent tab's newer write to an unrelated case.
+  function saveProgress(caseId, status){
+    try{
+      var current = loadProgress();
+      current[caseId] = status;
+      localStorage.setItem(STORE_KEY, JSON.stringify(current));
+      state.progress = current;
+      return true;
+    }catch(e){ return false; }
   }
   function loadDrafts(){
     try{
@@ -694,22 +714,29 @@
       // Drop any non-string leaf value (hand-edited localStorage, a stray number/object/
       // boolean, data from a future format) rather than passing it through — escapeHtml()
       // assumes a string and throws on anything else, which used to take the whole case
-      // view down with an uncaught exception the moment that case was opened.
+      // view down with an uncaught exception the moment that case was opened. Also drop
+      // any entry keyed by a case id that no longer exists in CASES.
       var clean = {};
-      Object.keys(d).forEach(function(caseId){
-        var entry = d[caseId];
+      CASES.forEach(function(c){
+        var entry = d[c.id];
         if(!entry || typeof entry !== "object" || Array.isArray(entry)) return;
         var cleanEntry = {};
         Object.keys(entry).forEach(function(k){
           if(typeof entry[k] === "string") cleanEntry[k] = entry[k];
         });
-        clean[caseId] = cleanEntry;
+        if(Object.keys(cleanEntry).length) clean[c.id] = cleanEntry;
       });
       return clean;
     }catch(e){ return {}; }
   }
-  function saveDrafts(d){
-    try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); return true; }catch(e){ return false; }
+  function saveDrafts(caseId, fields){
+    try{
+      var current = loadDrafts();
+      current[caseId] = fields;
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(current));
+      draftCache = current;
+      return true;
+    }catch(e){ return false; }
   }
 
   (function validateCasesData(){
@@ -754,6 +781,7 @@
   var app = document.getElementById("app");
 
   function escapeHtml(s){
+    s = (s===null || s===undefined) ? "" : String(s);
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   }
 
@@ -1053,8 +1081,7 @@
           var c0 = caseById(state.caseId);
           if(!c0) return;
           pendingStatus[state.caseId] = kind;
-          state.progress[state.caseId] = kind;
-          lastSaveFailed = !saveProgress(state.progress);
+          lastSaveFailed = !saveProgress(state.caseId, kind);
           render();
         } else if(action==="next-case"){
           var c = caseById(state.caseId);
@@ -1077,21 +1104,6 @@
   var draftSaveTimer = null;
   var draftSaveFailed = false;
 
-  // Writes draftCache to localStorage, but first re-reads whatever is currently on disk and
-  // keeps its entries for any case this tab's draftCache doesn't itself hold data for. Without
-  // this, a background tab's periodic pagehide/visibilitychange flush would blindly overwrite
-  // the whole drafts object with its own (possibly stale) in-memory snapshot, silently
-  // clobbering edits another tab made to a case this tab never opened. Cases this tab did
-  // touch still win with this tab's own (more current) version.
-  function persistDrafts(){
-    var onDisk = loadDrafts();
-    var merged = {};
-    Object.keys(onDisk).forEach(function(id){ merged[id] = onDisk[id]; });
-    Object.keys(draftCache).forEach(function(id){ merged[id] = draftCache[id]; });
-    draftSaveFailed = !saveDrafts(merged);
-    return merged;
-  }
-
   function collectDraft(caseId, flushNow){
     var d = {};
     app.querySelectorAll("textarea[data-field]").forEach(function(ta){
@@ -1100,14 +1112,24 @@
     draftCache[caseId] = d;
     if(draftSaveTimer){ clearTimeout(draftSaveTimer); draftSaveTimer = null; }
     if(flushNow){
-      persistDrafts();
+      draftSaveFailed = !saveDrafts(caseId, d);
     } else {
-      draftSaveTimer = setTimeout(persistDrafts, 400);
+      draftSaveTimer = setTimeout(function(){ draftSaveFailed = !saveDrafts(caseId, d); }, 400);
     }
   }
-  window.addEventListener("pagehide", persistDrafts);
+  // Best-effort: flush only the case currently open, re-reading disk first (via saveDrafts'
+  // own read-merge-write) so a background tab's flush never touches a case it didn't edit —
+  // unlike replaying the whole in-memory draftCache, which could still carry a stale entry
+  // for a case this tab edited earlier in the session and clobber a newer edit another tab
+  // made to that same case since.
+  function flushCurrentDraft(){
+    if(state.view === "case" && state.caseId && draftCache[state.caseId]){
+      saveDrafts(state.caseId, draftCache[state.caseId]);
+    }
+  }
+  window.addEventListener("pagehide", flushCurrentDraft);
   document.addEventListener("visibilitychange", function(){
-    if(document.visibilityState === "hidden") persistDrafts();
+    if(document.visibilityState === "hidden") flushCurrentDraft();
   });
 
   // Exposed only for tests.html (loaded via iframe) to reach otherwise-private module
@@ -1123,7 +1145,6 @@
     loadDrafts: loadDrafts,
     saveDrafts: saveDrafts,
     completedCount: completedCount,
-    persistDrafts: persistDrafts,
     getDraftCache: function(){ return draftCache; },
     setDraftCacheEntry: function(id, obj){ draftCache[id] = obj; },
     getState: function(){ return state; }
