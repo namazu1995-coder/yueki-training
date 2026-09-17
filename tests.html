@@ -55,7 +55,7 @@
     var CASES = hooks.CASES;
 
     // --- CASES data integrity ---
-    assert("CASESには5症例ある", CASES.length === 5, "実際: " + CASES.length);
+    assert("CASESには7症例ある", CASES.length === 7, "実際: " + CASES.length);
     var ids = {}, nums = {}, idsOk = true, numsOk = true, seqOk = true;
     CASES.forEach(function(c, i){
       if(ids[c.id]) idsOk = false;
